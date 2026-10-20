@@ -100,6 +100,10 @@ Circom ZK circuits managed with [Circomkit](https://github.com/erhant/circomkit)
 
 TypeScript SDK for interacting with Privacy Pools V2 contracts and generating/verifying proofs.
 
+## Development partner
+
+Privacy Pools v2 was developed by 0xbow with [Wonderland](https://wonderland.xyz) as development partner.
+
 ## License
 
 © 2025-2026 0xbow. Each directory carries its own license; the root [LICENSE](./LICENSE) maps them.
