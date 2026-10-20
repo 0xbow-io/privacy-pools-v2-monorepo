@@ -508,6 +508,7 @@ export {
     DestinationDepositTargetMismatch,
     DustRescueRecipientConflict,
     DestinationDepositUnaffordable,
+    NativeDestinationDepositUnsupported,
     NativeSwapDepositUnavailable,
     YieldTargetNotConfigured,
 } from "./errors/PoolSessionTransact.js";

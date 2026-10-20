@@ -1,8 +1,12 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 // Deliberate exception to the "all imports via internal.js" rule (SDK CLAUDE.md §1): the whole
 // purpose of this file is to assert what the PUBLIC barrel exposes, so it must import from
 // `external.js` — going through `internal.js` would test the wrong thing and pass regardless.
+import * as publicBarrel from "../../src/external.js";
 import {
     AtRestDecryptionError,
     BuildTransactWitnessInputsSchema,
@@ -27,6 +31,7 @@ import {
     KEYSTORE_WRITE_ABI,
     liveEpochParams,
     MAX_INPUTS,
+    NativeDestinationDepositUnsupported,
     notePointsForEpoch,
     PaymentRequestBaseError,
     PaymentRequestExpired,
@@ -36,6 +41,7 @@ import {
     POINTS_DECIMALS,
     PointsBaseError,
     PointsDataUnavailable,
+    PoolSessionTransactBaseError,
     SCAN_EXPIRY_GRACE_MS,
     sleep,
 } from "../../src/external.js";
@@ -184,5 +190,35 @@ describe("public barrel runtime exports", () => {
                 expect(error).toBeInstanceOf(Error);
             }
         });
+    });
+
+    // Thrown by PoolSessionSwapDeposit and PoolSessionReshieldCrosschain, but type-only until
+    // 2026-10: a frontend's `instanceof` was always false, and evm-sdk's
+    // `.rejects.toThrow(NativeDestinationDepositUnsupported)` assertions passed on any error.
+    describe("cross-chain native-destination refusal", () => {
+        it("make NativeDestinationDepositUnsupported instanceof-able against its base", () => {
+            const error = new NativeDestinationDepositUnsupported("0x0", "1");
+            expect(error).toBeInstanceOf(NativeDestinationDepositUnsupported);
+            expect(error).toBeInstanceOf(PoolSessionTransactBaseError);
+            expect(error).toBeInstanceOf(Error);
+        });
+    });
+
+    // The exhaustive form of the cross-category sample above, for error classes only: every
+    // class declared under src/errors/ must be a runtime export, so the next one left out of the
+    // curated blocks in external.ts fails here rather than in a consumer.
+    it("value-export every error class declared under src/errors/", () => {
+        const errorsDir = fileURLToPath(new URL("../../src/errors/", import.meta.url));
+        const declared = readdirSync(errorsDir)
+            .filter((file) => file.endsWith(".ts"))
+            .flatMap((file) =>
+                [...readFileSync(join(errorsDir, file), "utf8").matchAll(/^export class (\w+)/gm)].flatMap(
+                    (match) => match[1] ?? [],
+                ),
+            );
+        const runtimeExports = publicBarrel as Record<string, unknown>;
+
+        expect(declared.length).toBeGreaterThan(100);
+        expect(declared.filter((name) => typeof runtimeExports[name] !== "function")).toEqual([]);
     });
 });
