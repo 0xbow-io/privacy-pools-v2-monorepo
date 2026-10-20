@@ -1,0 +1,8 @@
+# Keep the build context to sources only: no build output, no git history, no local secrets.
+target
+.git
+**/.env
+**/.env.*
+*.keystore
+Dockerfile
+.dockerignore

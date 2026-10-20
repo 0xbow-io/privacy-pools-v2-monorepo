@@ -1,0 +1,52 @@
+{
+    "chains": {
+        "evm": [
+            {
+                "id": 42161,
+                "name": "arbitrum",
+                "rpc_url": "https://arb1.arbitrum.io/rpc",
+                "entrypoint_contract": "0xad0b4d5212C126B334Af11Bf4547eF4C91Bfcf44",
+                "relay_contract": "0xae45ebf911ff64d276cd65c40c84fc867a0a2008",
+                "pool_vault_contract": "0x38B829a19B178fA5Defa1D379C2859bd3e5B3451",
+                "destination_calls_supported": true,
+                "relay_swaps_contract": "0x704D510b51324d24B2513C56247e7c8188Ab51e6",
+                "fee_receiver_address": "0x0000000000000000000000000000000000000001",
+                "signer_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "flat_fee_amount": "21000",
+                "native_currency": {
+                    "name": "Ether",
+                    "symbol": "ETH",
+                    "decimals": 18
+                },
+                "supported_assets": [
+                    {
+                        "address": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+                        "ticker": "ETH",
+                        "quoter": "Native",
+                        "fee_bps": "10",
+                        "decimals": 18
+                    },
+                    {
+                        "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+                        "ticker": "WETH",
+                        "quoter": "Native",
+                        "fee_bps": "10",
+                        "decimals": 18
+                    },
+                    {
+                        "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                        "ticker": "USDC",
+                        "quoter": "Mock",
+                        "decimals": 6
+                    },
+                    {
+                        "address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                        "ticker": "USDT",
+                        "quoter": "Mock",
+                        "decimals": 6
+                    }
+                ]
+            }
+        ]
+    }
+}

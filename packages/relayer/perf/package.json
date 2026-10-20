@@ -1,0 +1,25 @@
+{
+    "name": "perf",
+    "version": "1.0.1",
+    "description": "Relayer performance test suite: RPC-efficiency regression tests, fault injection, latency benchmarks",
+    "private": true,
+    "license": "GPL-3.0-or-later",
+    "devDependencies": {
+        "@tsconfig/node22": "catalog:shared",
+        "@types/node": "catalog:shared",
+        "typescript": "catalog:shared",
+        "vitest": "catalog:shared"
+    },
+    "scripts": {
+        "stack:up": "docker compose up -d --build --wait anvil rpc-proxy relayer",
+        "stack:down": "docker compose down",
+        "stack:restart-relayer": "docker compose restart relayer",
+        "test": "vitest run",
+        "test:baseline": "PERF_BASELINE=1 vitest run",
+        "bench": "node src/latency-bench.mjs",
+        "bench:save": "node src/compare.mjs save",
+        "bench:compare": "node src/compare.mjs compare",
+        "docker": "docker compose up --build --abort-on-container-exit --exit-code-from tests && docker compose down",
+        "docker:down": "docker compose down"
+    }
+}

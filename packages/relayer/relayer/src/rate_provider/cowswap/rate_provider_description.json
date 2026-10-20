@@ -1,0 +1,10 @@
+{
+    "provider": "Cowswap",
+    "known_currencies": [
+        { "chainType": "evm", "chainId": 1, "assetId": "*" },
+        { "chainType": "evm", "chainId": 100, "assetId": "*" },
+        { "chainType": "evm", "chainId": 42161, "assetId": "*" },
+        { "chainType": "evm", "chainId": 8453, "assetId": "*" },
+        { "chainType": "evm", "chainId": 11155111, "assetId": "*" }
+    ]
+}

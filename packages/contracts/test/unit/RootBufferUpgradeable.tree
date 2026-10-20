@@ -1,0 +1,31 @@
+UnitRootBufferUpgradeable::__RootBufferUpgradeable_init
+├── When already initialized
+│   └── It should revert with InvalidInitialization
+├── When size is zero
+│   └── It should revert with RootBuffer_InvalidSize
+└── When size is greater than zero
+    ├── It should set rootHistorySize to size
+    └── It should set currentRootIndex to last possible position
+
+UnitRootBufferUpgradeable::isKnownRoot
+├── When root is zero
+│   └── It should return false
+└── When root is not zero
+    ├── Given buffer is empty
+    │   └── It should return false
+    ├── Given root does not exist in buffer
+    │   └── It should return false
+    ├── Given root is at current index
+    │   └── It should return true
+    ├── Given root is at an earlier index
+    │   └── It should return true
+    └── Given root is at oldest index
+        └── It should return true
+
+UnitRootBufferUpgradeable::_updateRoot
+├── Given buffer has space
+│   ├── It should store root at next index
+│   └── It should increment currentRootIndex
+└── Given currentRootIndex is at last position
+    ├── It should overwrite oldest root
+    └── It should wrap currentRootIndex to zero

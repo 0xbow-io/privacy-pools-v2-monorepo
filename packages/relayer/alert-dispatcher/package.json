@@ -1,0 +1,76 @@
+{
+    "name": "@privacy-pools-v2/alert-dispatcher",
+    "version": "0.0.2",
+    "description": "Standalone GCP Cloud Run service that consumes relayer operational alerts from Pub/Sub (topic relayer-alerts), applies a Firestore-backed per-dedupKey cooldown, and delivers them to Telegram. The relayer only publishes alerts; it never talks to Telegram itself.",
+    "author": "",
+    "private": true,
+    "license": "GPL-3.0-or-later",
+    "type": "commonjs",
+    "scripts": {
+        "build": "nest build",
+        "start": "node dist/main",
+        "start:dev": "nest start --watch",
+        "start:debug": "nest start --debug --watch",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:cov": "jest --coverage",
+        "lint": "eslint -c ./eslint.config.mjs",
+        "lint:fix": "eslint --fix -c ./eslint.config.mjs"
+    },
+    "dependencies": {
+        "@google-cloud/firestore": "^7.11.0",
+        "@nestjs/common": "11.1.18",
+        "@nestjs/core": "11.1.18",
+        "@nestjs/platform-express": "11.1.18",
+        "reflect-metadata": "0.2.2",
+        "rxjs": "7.8.2",
+        "zod": "3.24.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "catalog:lint",
+        "@nestjs/cli": "11.0.19",
+        "@nestjs/schematics": "11.0.10",
+        "@nestjs/testing": "11.1.18",
+        "@tsconfig/node22": "catalog:shared",
+        "@types/express": "5.0.6",
+        "@types/jest": "30.0.0",
+        "@types/node": "catalog:shared",
+        "eslint": "catalog:lint",
+        "eslint-config-prettier": "catalog:lint",
+        "globals": "catalog:lint",
+        "jest": "30.3.0",
+        "jest-ctrf-json-reporter": "0.0.10",
+        "jest-mock-extended": "4.0.0",
+        "source-map-support": "0.5.21",
+        "ts-jest": "29.4.9",
+        "ts-loader": "9.5.7",
+        "ts-node": "10.9.2",
+        "tsconfig-paths": "4.2.0",
+        "typescript": "5.9.3",
+        "typescript-eslint": "catalog:lint"
+    },
+    "jest": {
+        "moduleFileExtensions": [
+            "js",
+            "json",
+            "ts"
+        ],
+        "reporters": [
+            "default",
+            [
+                "jest-ctrf-json-reporter",
+                {}
+            ]
+        ],
+        "rootDir": "src",
+        "testRegex": ".*\\.spec\\.ts$",
+        "transform": {
+            "^.+\\.(t|j)s$": "ts-jest"
+        },
+        "collectCoverageFrom": [
+            "**/*.(t|j)s"
+        ],
+        "coverageDirectory": "../coverage",
+        "testEnvironment": "node"
+    }
+}

@@ -1,0 +1,26 @@
+# All required RPCS
+export RPC_URL_42161=https://arb-mainnet.g.alchemy.com/v2/${SOME_CYPHER}
+export RPC_URL_8453=https://base-mainnet.g.alchemy.com/v2/${SOME_CYPHER}
+export RPC_URL_1=https://eth-mainnet.g.alchemy.com/v2/${SOME_CYPHER}
+export RPC_URL_10=https://opt-mainnet.g.alchemy.com/v2/${SOME_CYPHER}
+export RPC_URL_56=https://bnb-mainnet.g.alchemy.com/v2/${SOME_CYPHER}
+
+
+# Main private keys
+export ASP_POSTMAN_PRIVATE_KEY=first private key
+export SIGNER_PRIVATE_KEY_42161=third private key
+export SIGNER_PRIVATE_KEY_8453=third private key
+export SIGNER_PRIVATE_KEY_10=third private key
+export SIGNER_PRIVATE_KEY_56=third private key
+export RELAY_SWAPS_ADDRESS=address of the relay contract
+
+
+## all fat wallet used keys, for reference only
+FAT_WALLET_A_0=0x0967....6842dCe8
+FAT_WALLET_PRIVATE_0=private key first
+
+FAT_WALLET_A_1=0x6fa...CC42dC
+FAT_WALLET_PRIVATE_1=second private key
+
+FAT_WALLET_A_2=0xa60748....E6FccF
+FAT_WALLET_PRIVATE_2=third private key

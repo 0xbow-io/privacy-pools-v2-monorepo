@@ -1,0 +1,321 @@
+name: CI — Contracts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, dev, feat/contracts]
+    paths:
+      - 'packages/contracts/**'
+      # Circuit build artifacts are linked into the contracts package via
+      # remappings (verifiers/=../circuits/build/), so any drift in zkeys
+      # or verifier.sol must re-run the integration suite end-to-end.
+      - 'packages/circuits/build/**'
+      - '.github/workflows/ci-contracts.yml'
+  pull_request:
+    paths:
+      - 'packages/contracts/**'
+      - 'packages/circuits/build/**'
+      - '.github/workflows/ci-contracts.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FOUNDRY_PROFILE: ci
+  # Pinned, not `stable`. `forge fmt` output changes between releases, so a floating
+  # version turns the lint gate into a time bomb: v1.8.1 reflows chained calls
+  # differently from v1.7.1 and started failing `forge fmt --check` on files no PR had
+  # touched. Keep this in lockstep with the version the repo is formatted with, and
+  # bump it in the same commit as the reformat.
+  FOUNDRY_VERSION: v1.7.1
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: Big_Guy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: ${{ env.FOUNDRY_VERSION }}
+
+      # `forge fmt --check` is only meaningful against the version the repo is
+      # formatted with, so fail loudly here rather than as a mystery fmt diff if the
+      # pin ever stops taking effect.
+      - name: Verify pinned Foundry
+        run: |
+          expected="${FOUNDRY_VERSION#v}"
+          actual="$(forge --version | sed -n 's/^forge Version: \([0-9][^ ]*\).*/\1/p')"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::Foundry version mismatch: expected $expected (FOUNDRY_VERSION=$FOUNDRY_VERSION), got '$actual'."
+            exit 1
+          fi
+          echo "Foundry $actual matches the pin."
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @privacy-pools-v2/contracts lint
+
+      - name: Install and run Bulloak
+        uses: smol-ninja/bulloak-toolchain@v1
+        with:
+          test-dir: 'test/unit'
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: Big_Guy
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: ${{ env.FOUNDRY_VERSION }}
+          cache: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm --filter @privacy-pools-v2/contracts build
+
+      - name: Run unit tests
+        run: pnpm --filter @privacy-pools-v2/contracts test:unit
+
+  invariant-tests:
+    name: Invariant Tests
+    runs-on: Big_Guy
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: ${{ env.FOUNDRY_VERSION }}
+          cache: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm --filter @privacy-pools-v2/contracts build
+
+      - name: Run execution path tests
+        run: pnpm --filter @privacy-pools-v2/contracts test:invariant:execution-paths
+
+      - name: Run invariant fuzz (CI profile)
+        run: pnpm --filter @privacy-pools-v2/contracts test:invariant:ci
+
+  integration-mainnet:
+    name: Integration Tests (Mainnet Fork)
+    runs-on: Big_Guy
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: ${{ env.FOUNDRY_VERSION }}
+          cache: true
+
+      - name: Cache Foundry RPC responses
+        uses: actions/cache@v4
+        with:
+          path: ~/.foundry/cache/rpc
+          key: foundry-rpc-mainnet-${{ hashFiles('packages/contracts/test/integration/**/*.sol') }}
+          restore-keys: |
+            foundry-rpc-mainnet-
+            foundry-rpc-
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm --filter @privacy-pools-v2/contracts build
+
+      - name: Run mainnet fork integration tests
+        run: pnpm --filter @privacy-pools-v2/contracts test:integration
+        env:
+          MAINNET_RPC: ${{ secrets.MAINNET_RPC }}
+          SEPOLIA_RPC: ${{ secrets.SEPOLIA_RPC }}
+
+  integration-sepolia:
+    name: Integration Tests (Sepolia Fork)
+    runs-on: Big_Guy
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: ${{ env.FOUNDRY_VERSION }}
+          cache: true
+
+      - name: Cache Foundry RPC responses
+        uses: actions/cache@v4
+        with:
+          path: ~/.foundry/cache/rpc
+          key: foundry-rpc-sepolia-${{ hashFiles('packages/contracts/test/integration/**/*.sol') }}
+          restore-keys: |
+            foundry-rpc-sepolia-
+            foundry-rpc-
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm --filter @privacy-pools-v2/contracts build
+
+      - name: Run Sepolia fork integration tests
+        run: pnpm --filter @privacy-pools-v2/contracts test:integration:sepolia
+        env:
+          SEPOLIA_RPC: ${{ secrets.SEPOLIA_RPC }}
+
+  coverage:
+    name: Coverage
+    runs-on: Big_Guy
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: ${{ env.FOUNDRY_VERSION }}
+          cache: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run coverage
+        run: pnpm --filter @privacy-pools-v2/contracts coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./packages/contracts/lcov.info
+          fail_ci_if_error: false

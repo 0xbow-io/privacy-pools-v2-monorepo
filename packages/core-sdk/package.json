@@ -1,0 +1,67 @@
+{
+  "name": "@privacy-pools-v2/core-sdk",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Privacy Pools V2 chain-agnostic SDK core — protocol logic, crypto, note/keystore management, and generic contract-interactor abstractions shared by evm-sdk and stellar-sdk",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./batch-fee": {
+      "types": "./dist/batchFee.d.ts",
+      "import": "./dist/batchFee.js",
+      "require": "./dist/batchFee.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "pnpm typecheck && vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.eslint.json",
+    "clean": "rm -rf dist",
+    "format": "prettier --check \"{src,test}/**/*.{js,ts,json}\"",
+    "format:fix": "prettier --write \"{src,test}/**/*.{js,ts,json}\"",
+    "lint": "eslint -c ./eslint.config.mjs",
+    "lint:fix": "eslint --fix -c ./eslint.config.mjs"
+  },
+  "dependencies": {
+    "@ethereumjs/rlp": "10.1.3",
+    "@noble/ciphers": "2.1.1",
+    "@noble/curves": "2.0.1",
+    "@noble/hashes": "2.0.1",
+    "@privacy-pools-v2/circuits": "workspace:*",
+    "@zk-kit/lean-imt": "2.2.4",
+    "circomlibjs": "0.1.7",
+    "multiformats": "^14.0.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.1.3",
+    "snarkjs": "0.7.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:lint",
+    "@tsconfig/node22": "catalog:shared",
+    "@types/circomlibjs": "^0.1.6",
+    "@types/node": "catalog:shared",
+    "@types/snarkjs": "^0.7.9",
+    "eslint": "catalog:lint",
+    "eslint-config-prettier": "catalog:lint",
+    "globals": "catalog:lint",
+    "tsup": "^8.0.0",
+    "typescript": "catalog:shared",
+    "typescript-eslint": "catalog:lint",
+    "viem": "2.45.3",
+    "vitest": "^1.5.0"
+  }
+}

@@ -1,0 +1,17 @@
+UnitPPRouterFactory::createRouter
+├── It wires immutables
+├── It only owner
+├── It reverts on foreign pool AToken
+├── It reverts on duplicate
+├── It emits RouterCreated
+└── It tracks multiple
+
+UnitPPRouterFactory::factoryRouter
+└── It deposits exact shares
+
+UnitPPRouterFactory::constructor
+└── It reverts on zero address
+
+UnitPPRouterFactory::renounceOwnership
+└── It reverts when called
+

@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+out/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.cursor/
+.claude/settings.local.json
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# ========================
+# Contracts (Foundry)
+# ========================
+cache/
+broadcast/
+typechain-types/
+
+# ========================
+# Circuits (Circomkit)
+# ========================
+packages/circuits/ptau/
+packages/circuits/fuzz-output/
+packages/circuits/circuits/test/main/
+packages/circuits/benchmarks/constraint-analysis-*.json
+packages/circuits/benchmarks/benchmark-results-*.json
+packages/circuits/build/**/*.wtns
+
+# ========================
+# Coverage
+# ========================
+coverage/
+lcov.info
+
+# ========================
+# Scrapbook
+# ========================
+.scrapbook/
+
+# ========================
+# Mutation Testing
+# ========================
+mutation_campaign/
+
+# ========================
+# Local secrets
+# ========================
+packages/contracts/.secrets/
+
+# Swap review: local fixtures / configs with placeholder keys (not for CI)
+packages/swaps/test/full_swap_response.json
+packages/swaps/test/full_swap_and_contract_response.json
+**/relayer.config.real.json
+
+# LLM
+.claude
+packages/swaps/scripts/results/

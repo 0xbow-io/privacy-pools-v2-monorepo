@@ -1,0 +1,22 @@
+UnitPrivacyPoolRelayBatch::relayBatch
+├── It when batch is empty
+├── It when batch exceeds max batch
+├── It when transact params length mismatches
+├── It when note data length mismatches
+├── It when an item has zero withdrawal
+├── It when recipient is zero
+├── It when an item has a different asset
+├── It when an item has a different recipient
+├── It when an item has a different fee recipient
+├── It when an item fee exceeds max relay fee
+├── It when an item fee exceeds its withdrawal
+└── It when msg value does not match total native gas
+
+UnitPrivacyPoolRelayBatch::relayBatch
+├── It when asset is native when fee is loaded on a single item
+├── It when asset is native when fee recipient is address zero
+├── It when max relay fee is zero uncapped
+├── It when asset is ERC20
+├── It when batch has a single item
+├── It when batch is at max batch
+└── It when batch is max batch minus one

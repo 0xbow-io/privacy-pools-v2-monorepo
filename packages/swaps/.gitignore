@@ -1,0 +1,16 @@
+# Deposit secrets (contains private keys for withdrawal)
+.deposits/
+intents.config.json
+
+# Mainnet test state (protocol keys, ASP leaves, deployed addresses)
+.mainnet-test-state.json
+.mainnet-test-notes/
+
+# Any dotfile (state, notes, deploy artifacts, secrets)
+.*
+# Dotfile allowlist
+!.eslintrc.cjs
+!.prettierrc
+
+# Encrypted files
+*.gpg

@@ -1,0 +1,34 @@
+[
+    {
+        "chainId": 1,
+        "chainName": "mainnet",
+        "status": "deployed",
+        "deployedAt": null,
+        "deployBlock": 25893288,
+        "contracts": {
+            "PoolVault": "0x0Eb42804BF897662aF851370eaeAdcDBEC1b97ed",
+            "Entrypoint": "0xca1e072236D231130059eeA6Bfceb7F4e9a1F0C3",
+            "Keystore": "0x6E463391c79b7e1A88eF26E0B023f9A6C9938a71",
+            "ASPRegistry": "0x259C0BEa1d783c202509BD3b2688d23b8AEf58B0",
+            "RelaySwaps": "0xd0395c08DD8eA7671a7A65bDca8E473e8E8260a8"
+        },
+        "note": "V2 PRODUCTION stack (the one v2.privacypools.com, the prod relayer https://relayer-v2-prod-149184580131.us-east1.run.app and the prod ASP https://api-v2.0xbow.io serve). We hold NO admin/postman role here. PoolVault/Entrypoint from .relayer-prod-config.json; Keystore + ASPRegistry read on-chain via PoolVault.keystore()/aspRegistry() 2026-09-23; RelaySwaps = prod:v2 CREATE2 instance (yield code, owner 0x0967, POOL()/ENTRYPOINT() verified on-chain 2026-09-23, LiFi Diamond 0x1231DEB6 + Executor 0xd9B2Da9C + ERC20Proxy 0x68E1Acfa approved, zaps ppUSDC/ppUSDT/ppETH approved). deployBlock = the prod ASP's `fromBlock` for poolId 1 (GET /global/public/entrypoints) — an event-scan lower bound only. Entrypoint-enabled assets (assets() 2026-09-23): ETH (min 0.004), ppETH (min 0.004), ppUSDC (min 10 shares), ppUSDT (min 10 shares). Raw USDC / USDT / WETH are NOT enabled — every stable deposit is a yield share through its PPRouter.",
+        "footgunWarning": "Same PoolVault / Entrypoint / Keystore / ASPRegistry / RelaySwaps addresses on chain 56 (CREATE2 parity) — the chainId is the only thing telling them apart. Never mix with the TESTING stacks in deployments-it-003.json (pool 0x8884...) or the it-002 stacks."
+    },
+    {
+        "chainId": 56,
+        "chainName": "bsc",
+        "status": "deployed",
+        "deployedAt": null,
+        "deployBlock": 119614738,
+        "contracts": {
+            "PoolVault": "0x0Eb42804BF897662aF851370eaeAdcDBEC1b97ed",
+            "Entrypoint": "0xca1e072236D231130059eeA6Bfceb7F4e9a1F0C3",
+            "Keystore": "0x6E463391c79b7e1A88eF26E0B023f9A6C9938a71",
+            "ASPRegistry": "0x259C0BEa1d783c202509BD3b2688d23b8AEf58B0",
+            "RelaySwaps": "0xd0395c08DD8eA7671a7A65bDca8E473e8E8260a8"
+        },
+        "note": "V2 PRODUCTION stack on BSC (prod ASP poolId 3). Same verification as the chain-1 entry, 2026-09-23. RelaySwaps routers approved: LiFi Diamond 0x1231DEB6 + Executor 0x2dfaDAB8 + ERC20Proxy 0x5741A7Ff; zap ppUSDT 0xc0FBB5D5 approved. deployBlock = prod ASP `fromBlock` for poolId 3. Entrypoint-enabled assets (assets() 2026-09-23): native BNB (min 0.02 BNB, maxRelayFee 2 BNB) and ppUSDT 0x6C17bE9c (min 10 shares, 18 dp; PPRouter 0x9929Ad2E, underlying Binance-Peg USDT 0x55d39832, 18 DECIMALS). Raw USDT / USDC / WBNB are NOT enabled: a cross-chain reshield into BSC must land as ppUSDT shares via PPRouter.depositExactShares (SDK `destinationYieldDepositTargets`) or as native BNB.",
+        "footgunWarning": "Identical addresses to chain 1 — see above. BSC USDT is 18-decimal."
+    }
+]

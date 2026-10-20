@@ -1,0 +1,13 @@
+{
+    "provider": "Mock",
+    "known_currencies": [
+        { "chainType": "evm", "chainId": 1, "assetId": "*" },
+        { "chainType": "evm", "chainId": 11155111, "assetId": "*" },
+        { "chainType": "evm", "chainId": 4114, "assetId": "*" },
+        { "chainType": "evm", "chainId": 5115, "assetId": "*" },
+        { "chainType": "evm", "chainId": 42161, "assetId": "*" },
+        { "chainType": "evm", "chainId": 8453, "assetId": "*" },
+        { "chainType": "evm", "chainId": 56, "assetId": "*" },
+        { "chainType": "evm", "chainId": 10, "assetId": "*" }
+    ]
+}

@@ -1,0 +1,15 @@
+UnitAccessRouter::Constructor
+├── When opsAdminRoles contains DEFAULT_ADMIN_ROLE
+│   └── It reverts with AdminRoleEscalation
+├── When opsAdminRoles contains OPS_ADMIN_ROLE
+│   └── It reverts with AdminRoleEscalation
+└── When called with valid opsAdminRoles
+    ├── It sets the DEFAULT_ADMIN_ROLE
+    ├── It sets the OPS_ADMIN_ROLE
+    ├── It sets the UPGRADER_ROLE
+    ├── It sets the PAUSER_ROLE
+    ├── It sets the UNPAUSER_ROLE
+    ├── It sets the ENTRYPOINT_MANAGER_ROLE
+    ├── It sets the POSTMAN_ROLE
+    ├── It sets DEFAULT_ADMIN_ROLE to manage timelocked roles
+    └── It sets OPS_ADMIN_ROLE to manage operational roles

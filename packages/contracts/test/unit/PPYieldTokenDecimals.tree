@@ -1,0 +1,13 @@
+UnitPPYieldTokenDecimals::decimals
+├── It Are18_For6dpAsset
+├── It Are18_For8dpAsset
+└── It Are18_For18dpAsset
+
+UnitPPYieldTokenDecimals::offset
+├── It FirstDepositScalesByOffset_6dp
+├── It FirstDepositScalesByOffset_8dp
+├── It FirstDepositScalesByOffset_18dp
+└── It RoundTripWithYieldAndFee_8dp
+
+UnitPPYieldTokenDecimals::constructor
+└── It reverts when asset decimals exceed 18

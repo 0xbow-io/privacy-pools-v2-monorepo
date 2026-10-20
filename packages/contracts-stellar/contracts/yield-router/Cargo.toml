@@ -1,0 +1,33 @@
+[package]
+name = "yield-router"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+testutils = ["soroban-sdk/testutils"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+contract-types = { workspace = true }
+soroban-v2-utils = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+yield-token = { path = "../yield-token", features = ["testutils"] }
+yield-adapter = { path = "../yield-adapter", features = ["testutils"] }
+# DEV-only: used by the drift test that pins our local AssetConfig mirror against the
+# pool's real one. A normal dependency here breaks LTO and triples the router's WASM.
+pool = { path = "../pool" }
+# For the real-pool WITHDRAWAL test: `transact` needs a live keystore root and ASP root, both read
+# by cross-contract call. The router's test file previously recorded that as an unavailable fixture;
+# it is not — the pool's own suite drives transact with a dummy VK and no fixture at all.
+keystore = { path = "../keystore" }
+asp-registry = { path = "../asp-registry" }
+
+[lints]
+workspace = true

@@ -1,0 +1,333 @@
+#+TITLE: Mainnet Integration Test Standards (packages/swaps)
+#+DATE: 2026-08-13
+
+* Why this document exists
+
+All mainnet integration tests in this directory move *real* funds on *real*
+chains (Arbitrum, Base, Ethereum mainnet, Optimism). A failed test run does
+not roll back — a deposit that succeeds and is then orphaned by a crashed
+test is real, spent USDC sitting in the pool with no local record of how to
+get it back.
+
+This doc describes the four-part pattern every mainnet suite in this
+directory follows (or should follow) to make that impossible, plus the
+gotchas that have actually bitten us. It was written after retrofitting the
+pattern into the two new cross-chain reshield tests
+(=mainnet-crosschain-relay-swaps-deposit-from-ethereum.integration.test.ts=
+and
+=mainnet-crosschain-relay-swaps-withdraw-to-optimism.integration.test.ts=),
+following the same fixes already applied to
+=mainnet-deposit.integration.test.ts=,
+=mainnet-relay-swaps.integration.test.ts=,
+=mainnet-real-relay-swaps-withdraw.integration.test.ts=, and
+=mainnet-real-relay-swaps-reshield.integration.test.ts=.
+
+* The four-part pattern
+
+** 1. Wallet role separation: postman vs depositor
+
+Two on-chain roles must never be collapsed into one key:
+
+- *Depositor* (=PRIVATE_KEY= / =SIGNER_PRIVATE_KEY_42161= in =.env=, wallet
+  =FAT_WALLET_A_2=): owns the note, must match the =PoolSession='s
+  =ownerAddress=. This is the wallet the test suite is "testing as."
+- *Postman* (=ASP_POSTMAN_PRIVATE_KEY= in =.env=, wallet =FAT_WALLET_A_0=):
+  holds =POSTMAN_ROLE= on the live =AccessRouter=, required by
+  =ASPRegistry.updateASPRoot()= — which =LocalASPTreeService.registerLabel()=
+  calls under the hood.
+
+If the depositor wallet signs =registerLabel()=, it reverts with
+=Permissioned_NotAuthorized()= (selector =0x4259e7de=). If the postman
+wallet is used as the session owner instead, ragequit/withdraw calls fail
+because the session's =ownerAddress= doesn't match the signer.
+
+Concretely, every suite that calls =registerLabel()= must:
+
+#+begin_src typescript
+const ASP_POSTMAN_PRIVATE_KEY = process.env.ASP_POSTMAN_PRIVATE_KEY;
+// ...
+const postmanAccount = privateKeyToAccount(ASP_POSTMAN_PRIVATE_KEY! as `0x${string}`);
+const postmanWalletClient = createWalletClient({
+  account: postmanAccount,
+  chain: arbitrum,
+  transport: http(ARB_RPC),
+});
+// ...
+localASP = await LocalASPTreeService.create({
+  aspRegistryAddress: ASP_REGISTRY_ADDRESS,
+  walletClient: postmanWalletClient as any,   // NOT the depositor's walletClient
+  publicClient: publicClient as any,
+}, ...);
+#+end_src
+
+and gate the suite with =describe.skipIf(!PRIVATE_KEY || !ASP_POSTMAN_PRIVATE_KEY || ...)=
+so a missing postman key skips cleanly instead of failing deep inside a
+proof-generation step.
+
+*Exception:* ragequit is permissionless w.r.t. the ASP by design (see
+=docs/tech-design/key-architectural-concepts.md= §3.6) — it bypasses
+compliance checks entirely. =mainnet-recover-snapshots.integration.test.ts=
+and =mainnet-mass-ragequit.integration.test.ts= only need
+=LocalASPTreeService= to satisfy =PoolSessionBuilder='s type requirements;
+its =getLabelStatus()= unconditionally returns "approved" and no
+=registerLabel()= call is ever made, so there is no postman-wallet
+requirement there.
+
+** 2. Recovery snapshots: save before anything can fail
+
+=test/helpers/recovery-snapshot.ts= exports =saveRecoverySnapshot()=, which
+captures everything needed to later ragequit a note *without re-scanning the
+whole chain*: the deposit tx/block, the state-tree leaves up to that block,
+the note's secrets (=protocolKeys=, note data), and the deployment's contract
+addresses. It's written to a JSON file under a shared directory.
+
+*The ordering rule that matters*: call =saveRecoverySnapshot()= immediately
+after the deposit is confirmed on-chain (=executeDeposit()= /
+=waitForTransactionReceipt()=), and *before* any subsequent step that can
+still fail — =registerLabel()=, a relay/swap call, a cross-chain bridge wait,
+etc. The deposit itself is already irreversible at that point; a snapshot
+written only after a later step succeeds would simply never exist if that
+later step throws, and the recovery data for real, spent funds is lost.
+
+This bit us for real: an earlier version of the deposit test called
+=registerLabel()= (which reverted on missing =POSTMAN_ROLE=, pre role-split
+fix) *before* saving the snapshot, orphaning a real deposit
+(=0x0528150b6bcc...=, still stuck as of this writing, tracked in
+=~/Documentos/FatSolutions/RelayerPrivacyPools/stale_deposits_12_august.org=).
+
+Snapshots normally live in a *shared* directory,
+=packages/swaps/.mainnet-deposit-notes/= (=RECOVERY_SNAPSHOT_DIR= constant in
+each suite — deliberately not each suite's own per-suite note-storage dir),
+so one recovery sweep (§3 below) covers deposits from every mainnet suite
+instead of needing a copy of the sweep per suite.
+
+*Cross-chain wrinkle*: for same-chain suites, =depositBlock= comes straight
+from the local =executeDeposit()= receipt. For
+=mainnet-crosschain-relay-swaps-deposit-from-ethereum.integration.test.ts=,
+the actual Arbitrum deposit tx doesn't exist locally — it's produced by
+LiFi's bridge executing the contract-calls calldata on the destination
+chain. That suite polls =LiFiSwapQuoteProvider.getSwapStatus()= until
+=status === "DONE"=, reads =receiving.txHash= to get the real Arbitrum tx,
+then resolves its block via =arbPublicClient.getTransaction()= before
+calling =saveRecoverySnapshot()=. Balance-delta polling alone is not enough
+here — it confirms funds moved but never gives you a tx hash/block to
+snapshot against.
+
+** 3. =markAsRecovered()= on success — don't leave false positives behind
+
+If a suite's own flow spends the note it just deposited (withdraw, reshield,
+cross-chain withdraw), it must call =markAsRecovered(snapshotPath)=
+immediately after the spend succeeds:
+
+#+begin_src typescript
+const txReceipt = await session.relayWithdrawAndSwap({ ... });
+expect(txReceipt.status).toBe(true);
+
+markAsRecovered(snapshotPath);  // note is spent, not stuck — close it out
+#+end_src
+
+Without this, the snapshot sits in =.mainnet-deposit-notes/= forever with no
+=recoveredAt= field, and =mainnet-recover-snapshots.integration.test.ts=
+picks it up on every future run, wastes a ragequit attempt on an
+already-spent note, and (before a later fix, see §5) could spuriously fail
+its final assertion.
+
+*When NOT to call it*: a suite that deposits but does not spend the note in
+the same run (e.g.
+=mainnet-crosschain-relay-swaps-deposit-from-ethereum.integration.test.ts=)
+must leave the snapshot =UNRECOVERED= — that's not a bug, it's a live
+deposit correctly waiting for the recovery sweep or a later withdraw test to
+find it.
+
+** 4. =denyExchanges: ["fly"]= — dodge a guaranteed-revert LiFi route
+
+LiFi's =\"fly\"= routing tool embeds a transaction deadline in its calldata
+that is consistently shorter than this protocol's own proof generation
+(30-60s) plus relayer/bridge round-trip. Any quote routed through =fly= is
+*guaranteed* to revert on execution with =ExpiredTransaction()= (selector
+=0x931997cf=) — not flaky, not occasionally stale, every single time,
+because the gap between deadline and actual execution time never closes.
+Retrying with a fresh quote does not help.
+
+This was diagnosed by reproducing directly against a forked chain (anvil
+fork + =anvil_setStorageAt= to fund the contract + =anvil_impersonateAccount=
++ calling the swap target directly) because =RelaySwaps.sol='s
+=require(_ok, RelaySwaps_SwapFailed())= discards the real revert reason —
+neither relayer logs nor the SDK error ever show =ExpiredTransaction()=
+directly.
+
+Fixed at the SDK level: =denyExchanges?: string[]= exists on:
+- =SwapQuoteRequest= (=LiFiSwapQuoteProvider.getSwapQuote()=)
+- =SwapAndDepositQuoteRequest= (=LiFiSwapQuoteProvider.getSwapAndDepositQuote()=)
+- =PrepareSwapQuoteParams= (=PoolSession.prepareSwapQuote()= — added
+  2026-08-13 specifically because the cross-chain withdraw-to-Optimism test
+  uses this higher-level convenience method and had no way to set it before)
+
+*Every* LiFi quote call in a mainnet suite needs =denyExchanges: ["fly"]=
+passed explicitly — there is no global default. Suites that make two LiFi
+calls (a sizing estimate + the real proof-bound quote, as in the reshield
+and cross-chain-deposit suites) need it on *both* calls independently; they
+are separate request objects.
+
+* The recovery sweep: =mainnet-recover-snapshots.integration.test.ts=
+
+This is the safety net for everything the four-part pattern above didn't
+already close out. On each run it:
+
+1. Scans =.mainnet-deposit-notes/= (non-recursively — see gotcha below) for
+   every =recovery-*.json= file with no =recoveredAt=.
+2. Skips any snapshot whose =ownerAddress= doesn't match the signing wallet
+   (a snapshot belonging to a different wallet isn't recoverable by trying
+   harder — re-run with that wallet's key instead).
+3. For each remaining snapshot: rebuilds a =PoolSession= using
+   =SnapshotRPCInteractor= (serves the snapshot's stored leaves instead of
+   re-scanning the whole chain, then fetches only the delta since the
+   deposit block — cheap even against an old deployment), discovers the
+   note, and skips (with a warning, not an abort) if it's not found or not
+   =NoteStatus.ACTIVE= (already spent, or genuinely pending).
+4. Ragequits every genuinely-actionable note found, records balance
+   before/after, and calls =markAsRecovered()= on success.
+5. One bad/mismatched snapshot is wrapped in try/catch so it can't abort the
+   rest of the sweep.
+
+*The assertion fix (2026-08-13)*: the final assertion used to be a bare
+=expect(totalRecovered).toBeGreaterThan(0)=, which fails spuriously on a run
+where every unrecovered snapshot turns out to already be spent (e.g.
+leftovers from a suite that predates its own =markAsRecovered()=-on-success
+call). Fixed with an =attempted= counter, incremented only when a snapshot
+is found *and* =ACTIVE= — i.e. a genuine ragequit attempt, not an
+owner-mismatch/not-found/already-spent skip:
+
+#+begin_src typescript
+if (attempted > 0) {
+  expect(totalRecovered).toBeGreaterThan(0);
+}
+#+end_src
+
+A run where nothing was genuinely actionable is a clean no-op, not a
+failure — mirrors the same stale-note exemption already used in
+=mainnet-mass-ragequit.integration.test.ts=.
+
+* File-by-file status (as of 2026-08-13)
+
+| Suite                                                            | Postman split | Recovery snapshot | markAsRecovered | denyExchanges |
+|-------------------------------------------------------------------+---------------+--------------------+------------------+----------------|
+| mainnet-deposit.integration.test.ts                              | yes           | yes                | n/a (deposit-only) | n/a          |
+| mainnet-recover-snapshots.integration.test.ts                    | n/a (ragequit is permissionless) | n/a (consumer, not producer) | yes (on ragequit) | n/a  |
+| mainnet-relay-swaps.integration.test.ts                          | yes           | yes                | NOT YET RETROFITTED | yes         |
+| mainnet-real-relay-swaps-withdraw.integration.test.ts            | yes           | yes                | yes              | yes            |
+| mainnet-real-relay-swaps-reshield.integration.test.ts            | yes           | yes                | yes              | yes (both LiFi calls) |
+| mainnet-crosschain-relay-swaps-deposit-from-ethereum.integration.test.ts | yes (added 2026-08-13, plus registerLabel step that didn't exist before) | yes (via LiFi status polling, see §2) | intentionally NOT called (see §3) | yes |
+| mainnet-crosschain-relay-swaps-withdraw-to-optimism.integration.test.ts | yes (added 2026-08-13, CONFIRMED WORKING) | yes (added 2026-08-13, CONFIRMED WORKING) | yes (added 2026-08-13, CONFIRMED WORKING) | yes, via new =prepareSwapQuote= param (CONFIRMED WORKING) |
+| mainnet-crosschain-relay-swaps-reshield-to-base.integration.test.ts | yes (both chains — postman holds POSTMAN_ROLE on Arbitrum *and* Base) | yes, BOTH legs: source (Arbitrum) via the established pattern, *and* destination (Base) via LiFi status polling + saveRecoverySnapshot(), added 2026-08-13 per poroto's request so a failure after the reshield tx but before this suite finishes still leaves the Base note recoverable through the ordinary sweep — no bespoke tooling needed | source: yes (spent by reshield); destination: intentionally NOT called (deposit-only, stays live for the sweep or a later withdraw) | yes, via new =estimateReshieldCrosschainAmount=/=prepareReshieldCrosschainQuote= params (added 2026-08-13, same pattern as =prepareSwapQuote=) |
+| mainnet-mass-ragequit.integration.test.ts                        | n/a (ragequit) | n/a (full catch-all scan, no snapshot needed) | (has its own stale-note exemption) | n/a |
+| lifi-calldata-verification-facet.integration.test.ts             | *out of scope* — never submits a transaction, purely decodes LiFi calldata for research. The =denyExchanges="fly"= deadline bug only matters for calldata that actually executes, so it doesn't apply here. | | | |
+
+*Cross-chain withdraw-to-Optimism confirmed working end-to-end 2026-08-13*:
+real run against it-002 (Arbitrum USDC deposit → keystore → ASP register →
+cross-chain withdraw-and-swap to Optimism USDT). Snapshot
+=recovery-0x0033b71a-...json= shows =recoveredAt= set 17s after =savedAt= —
+the full pattern (postman split, snapshot-before-risk, =denyExchanges= via
+the new =prepareSwapQuote= param, self-close-on-spend) all worked as
+designed on a real cross-chain flow, not just same-chain.
+
+*Deposit-from-Ethereum confirmed working end-to-end 2026-08-13*: once
+=FAT_WALLET_A_2= was funded with ETH on Ethereum mainnet, a real run
+succeeded and its snapshot was recovered (=recoveredAt= set) shortly after.
+
+** =mainnet-recover-snapshots.integration.test.ts= is already chain-agnostic
+
+Confirmed 2026-08-13 while adding Base recovery-snapshot coverage: no new
+recovery test is needed per destination chain. =chainForId()=/=rpcUrlForId()=
+already branch on both =42161= and =8453=, and every session it builds
+inside the sweep loop is constructed from =snapshot.contracts.{pool,
+entrypoint,keystore,aspRegistry}= — real, per-snapshot values, not
+hardcoded to one chain. The one hardcoded constant it does pass,
+=RELAY_SWAPS_ADDRESS= (Arbitrum-only, from =contract.config.js=), is
+confirmed harmless for any chain: traced through
+=PoolSessionFactory.ts=, it only gates whether an unused
+=PoolSessionSwapDeposit= delegate gets constructed — no on-chain read or
+validation of the address happens, and ragequit never touches that
+delegate. =BASE_RPC= already reads =process.env.BASE_RPC_URL=, which
+=run_a_test.sh= already exports. So =./run_a_test.sh 2= sweeps snapshots
+from every chain a suite has written one for, with zero changes needed —
+this is what "recover with our general tooling" means in practice: write
+a snapshot via the shared =saveRecoverySnapshot()= helper into the shared
+=.mainnet-deposit-notes/= directory, and the existing sweep picks it up
+automatically regardless of chain.
+
+** Two-layer protection pattern for cross-chain destination notes
+
+=mainnet-crosschain-relay-swaps-reshield-to-base.integration.test.ts=
+introduces a pattern worth reusing for any future suite that deposits on
+a chain the relayer doesn't control the timing of (i.e. anything past a
+LiFi bridge leg):
+
+1. *Immediately* after the destination-chain =prepareDeposit()= proof is
+   generated (before the source-chain spend tx is even submitted), write
+   the raw =pendingNote= to a plain JSON file in the suite's own
+   =NOTE_STORAGE_DIR= — cheap, and it's the only thing standing between
+   the eventual deposit and total secret loss if the process dies
+   mid-flow, since nothing about the deposit is on-chain yet to build a
+   real snapshot from.
+2. *Once the destination deposit is confirmed landed* (via LiFi
+   =getSwapStatus()= polling — needed regardless, since it's the only way
+   to learn the real destination tx hash/block; balance-delta polling
+   alone can't do this), save a full =saveRecoverySnapshot()= the normal
+   way, left =UNRECOVERED= since the note isn't spent by the suite that
+   deposited it.
+
+Between steps 1 and 2 there's a short window (source tx confirmed, bridge
+in flight) where only the cheap fallback file exists — accepted as a
+known, small residual gap, not worth a bespoke solution for.
+
+Open item: =mainnet-relay-swaps.integration.test.ts= (the first suite this
+pattern was applied to) still lacks the =markAsRecovered()=-on-success
+retrofit that tests 4/5/7 got later. Low urgency — the recovery sweep still
+catches its notes correctly, it just does one extra (harmless) ragequit
+attempt per stale snapshot instead of skipping it.
+
+* Gotchas
+
+** =run_a_test.sh= / =.env= sourcing order
+
+=run_a_test.sh= does =. ./.env= *before* =export PRIVATE_KEY=$SIGNER_PRIVATE_KEY_42161=
+(and now also before =ARB_RPC_URL=/=ETH_RPC_URL=/=OP_RPC_URL=). Since =.env=
+unconditionally re-exports =SIGNER_PRIVATE_KEY_42161= (and every other var it
+defines), a command-line override like
+=SIGNER_PRIVATE_KEY_42161=$FAT_WALLET_PRIVATE_2 ./run_a_test.sh 1= is
+*silently discarded* — =.env='s stored value always wins, no error. This does
+*not* affect vars =.env= doesn't define directly, like
+=ASP_POSTMAN_PRIVATE_KEY='s consumers reading it straight from the
+environment.
+
+To run as a specific wallet, either hand-edit the relevant =.env= line, or
+confirm what a var will actually resolve to first:
+=( . ./.env && cast wallet address --private-key "$VAR" )= — never print the
+key itself, only the derived address.
+
+** Non-recursive snapshot scan
+
+=loadUnrecoveredSnapshots()= in =mainnet-recover-snapshots.integration.test.ts=
+only reads the top level of =.mainnet-deposit-notes/=, not subdirectories.
+This is used deliberately: moving a snapshot that needs a different/blocked
+recovery path into a =deferred/= subfolder hides it from the sweep without
+deleting the data.
+
+** Public RPC fallbacks are flaky for real runs
+
+Both cross-chain suites default =ETH_RPC_URL=/=OP_RPC_URL= to public
+endpoints (=eth.llamarpc.com=, =mainnet.optimism.io=) if unset. These are
+unreliable enough to break a real run (observed a bare HTTP 521 from
+llamarpc mid-session) — always set real RPC URLs (=RPC_URL_1=, =RPC_URL_10=
+in =.env=, wired into =run_a_test.sh= as =ETH_RPC_URL=/=OP_RPC_URL=) before
+running these for real.
+
+** Verify balances before running, not after a failure
+
+Cross-chain suites spend from real balances on chains this test suite
+hadn't touched before (Ethereum mainnet gas + bridge amount for the
+deposit-from-Ethereum suite). Check the depositor's balance on the actual
+source chain before running —
+=cast balance $FAT_WALLET_A_2 --rpc-url $RPC_URL_1 --ether= — rather than
+discovering it's zero after burning a proof-generation cycle.

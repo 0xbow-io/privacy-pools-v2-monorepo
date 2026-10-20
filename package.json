@@ -1,0 +1,28 @@
+{
+  "name": "privacy-pools-v2",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Privacy Pools V2 Monorepo",
+  "license": "SEE LICENSE IN LICENSE",
+  "scripts": {
+    "build": "turbo run build",
+    "build:relayer-deps": "turbo run build --only --filter='@privacy-pools-v2/relayer^...' --filter='!@privacy-pools-v2/circuits' --filter='!@privacy-pools-v2/contracts'",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "lint:licenses": "node .github/scripts/check-licenses.mjs",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^2.3.0",
+    "typescript": "^5.4.5"
+  },
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,104 @@
+name: Deploy Alert Dispatcher
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to deploy (branch, tag, or SHA)'
+        required: false
+        type: string
+        default: 'v2.0'
+      image_tag:
+        description: 'Docker image tag (defaults to calling workflow SHA)'
+        required: false
+        type: string
+    secrets:
+      WIF_PROVIDER_ID:
+        required: true
+      SERVICE_ACCOUNT_EMAIL:
+        required: true
+      GCP_PROJECT:
+        required: true
+      GCP_REGION:
+        required: true
+      ARTIFACT_REPO:
+        required: true
+      IMAGE_NAME:
+        required: true
+      SERVICE_NAME:
+        required: true
+      TELEGRAM_CHAT_ID:
+        required: true
+
+jobs:
+  build:
+    runs-on: Big_Guy
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve image tag
+        id: meta
+        run: |
+          TAG="${{ inputs.image_tag || github.sha }}"
+          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REPO }}/${{ secrets.IMAGE_NAME }}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER_ID }}'
+          service_account: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
+
+      - name: Docker Auth
+        uses: 'docker/login-action@v3'
+        with:
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.access_token }}'
+          registry: '${{ secrets.GCP_REGION }}-docker.pkg.dev'
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: packages/relayer/alert-dispatcher/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image }}:latest
+
+  deploy:
+    runs-on: Big_Guy
+    needs: [build]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Google Auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER_ID }}'
+          service_account: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
+
+      - name: Deploy to Cloud Run
+        run: |
+          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REPO }}/${{ secrets.IMAGE_NAME }}"
+          gcloud run deploy ${{ secrets.SERVICE_NAME }} \
+            --image="${IMAGE}:${{ inputs.image_tag || github.sha }}" \
+            --region=${{ secrets.GCP_REGION }} \
+            --no-allow-unauthenticated \
+            --set-secrets=TELEGRAM_BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest \
+            --update-env-vars=TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}

@@ -1,0 +1,43 @@
+packages:
+  - "packages/**"
+  - "apps/*"
+
+catalogs:
+  lint:
+    '@eslint/js': 9.35.0
+    eslint: 9.35.0
+    eslint-config-prettier: 10.1.8
+    typescript-eslint: 8.44.0
+    globals: 16.4.0
+  shared:
+    '@tsconfig/node22': 22.0.5
+    '@types/node': 22.13.0
+    '@vitest/coverage-v8': 3.2.4
+    tsx: 4.20.3
+    typescript: 5.9.2
+    viem: 2.22.14
+    vitest: 3.2.4
+
+# Moved here from package.json's "pnpm" field, which pnpm >= 11 no longer reads (pnpm 10.27, pinned by
+# packageManager, reads these keys from this file too).
+overrides:
+  '@safe-global/safe-contracts': https://github.com/safe-global/safe-smart-account/archive/b75e2509ba4968f97c427f2657996a0711b7a4cf.tar.gz
+
+ignoredBuiltDependencies:
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - 'blake-hash'
+  - 'bufferutil'
+  - 'esbuild'
+  - 'unrs-resolver'
+  - 'utf-8-validate'
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - 'bufferutil'
+  - 'keccak'
+  - 'protobufjs'
+  - 'utf-8-validate'

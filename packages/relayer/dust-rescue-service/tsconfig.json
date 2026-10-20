@@ -1,0 +1,19 @@
+{
+    "extends": "@tsconfig/node22",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "isolatedModules": true,
+        "resolveJsonModule": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "types": ["jest"],
+        // allowJs: ts-jest's transform also has to cover the ESM-only @noble/ciphers
+        // dependency chain pulled in transitively via @privacy-pools-v2/evm-sdk's CJS
+        // build (see jest.transformIgnorePatterns in package.json) — Jest can't
+        // require() a true ESM package directly, so it needs transforming too.
+        "allowJs": true
+    },
+    "include": ["src"],
+    "exclude": ["node_modules", "dist"]
+}

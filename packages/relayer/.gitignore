@@ -1,0 +1,7 @@
+node_modules/
+*ctrf/*json
+ctrf/
+vitest-ctrf/
+*\.#*
+packages/mockedContracts/broadcast/*
+packages/mockedContracts/broadcast/

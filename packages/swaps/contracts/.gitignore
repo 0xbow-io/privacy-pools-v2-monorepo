@@ -1,0 +1,12 @@
+# Dependencies
+lib/
+
+# Compiler output
+out/
+cache/
+
+# Broadcast logs (contain private deployment data)
+broadcast/
+
+# Docs
+docs/

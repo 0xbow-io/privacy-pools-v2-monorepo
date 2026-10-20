@@ -1,0 +1,39 @@
+{
+  "assets": [
+    {
+      "name": "Native XLM",
+      "type": "native",
+      "enabled": true,
+      "minDepositAmount": "100000",
+      "vettingFeeBps": 100,
+      "maxRelayFee": "1000000"
+    },
+    {
+      "name": "USDC (Blend testnet)",
+      "type": "token",
+      "address": "CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU",
+      "enabled": true,
+      "minDepositAmount": "100000",
+      "vettingFeeBps": 100,
+      "maxRelayFee": "1000000"
+    },
+    {
+      "name": "wETH (Blend testnet)",
+      "type": "token",
+      "address": "CAZAQB3D7KSLSNOSQKYD2V4JP5V2Y3B4RDJZRLBFCCIXDCTE3WHSY3UE",
+      "enabled": true,
+      "minDepositAmount": "100",
+      "vettingFeeBps": 100,
+      "maxRelayFee": "1000"
+    },
+    {
+      "name": "wBTC (Blend testnet)",
+      "type": "token",
+      "address": "CAP5AMC2OHNVREO66DFIN6DHJMPOBAJ2KCDDIMFBR7WWJH5RZBFM3UEI",
+      "enabled": true,
+      "minDepositAmount": "10",
+      "vettingFeeBps": 100,
+      "maxRelayFee": "30"
+    }
+  ]
+}

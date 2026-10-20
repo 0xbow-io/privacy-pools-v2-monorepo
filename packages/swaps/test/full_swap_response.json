@@ -1,0 +1,395 @@
+{
+  type: 'lifi',
+  id: 'f5a210d1-91c3-4445-9c75-1ace31166090:0',
+  tool: 'relaydepository',
+  toolDetails: {
+    key: 'relaydepository',
+    name: 'Relay',
+    logoURI: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/relay.svg'
+  },
+  action: {
+    fromToken: {
+      address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      chainId: 42161,
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+      coinKey: 'USDC',
+      logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+      priceUSD: '0.999698',
+      tags: [ 'stablecoin' ],
+      verificationStatus: 'unverified',
+      verificationStatusBreakdown: []
+    },
+    fromAmount: '1000000',
+    toToken: {
+      address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+      chainId: 10,
+      symbol: 'DAI',
+      decimals: 18,
+      name: 'DAI Stablecoin',
+      coinKey: 'DAI',
+      logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png',
+      priceUSD: '0.998854',
+      tags: [ 'stablecoin' ],
+      verificationStatus: 'unverified',
+      verificationStatusBreakdown: []
+    },
+    fromChainId: 42161,
+    toChainId: 10,
+    slippage: 0.001,
+    fromAddress: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c',
+    toAddress: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c'
+  },
+  estimate: {
+    tool: 'relaydepository',
+    approvalAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+    toAmountMin: '976858795363039133',
+    toAmount: '977836631995038260',
+    fromAmount: '1000000',
+    feeCosts: [
+      {
+        name: 'LIFI Fixed Fee',
+        description: 'Fixed LIFI fee, independent of any other fee',
+        token: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999698',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        },
+        amount: '2500',
+        amountUSD: '0.0025',
+        percentage: '0.0025',
+        included: true,
+        feeSplit: { integratorFee: '0', lifiFee: '2500' }
+      },
+      {
+        name: 'Relayer Gas fee',
+        description: 'Relay bridge gas fee',
+        token: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999698',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        },
+        amount: '30',
+        amountUSD: '0.0001',
+        percentage: '0.0000',
+        included: true
+      },
+      {
+        name: 'Relayer Service fee',
+        description: 'Relay bridge service fee',
+        token: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999698',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        },
+        amount: '20196',
+        amountUSD: '0.0202',
+        percentage: '0.0202',
+        included: true
+      }
+    ],
+    gasCosts: [
+      {
+        type: 'SEND',
+        price: '20062000',
+        estimate: '192182',
+        limit: '2788273',
+        amount: '3855555284000',
+        amountUSD: '0.0077',
+        token: {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: 42161,
+          symbol: 'ETH',
+          decimals: 18,
+          name: 'ETH',
+          coinKey: 'ETH',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
+          priceUSD: '1991.59',
+          tags: [],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        }
+      }
+    ],
+    executionDuration: 2,
+    fromAmountUSD: '0.9997',
+    toAmountUSD: '0.9767'
+  },
+  includedSteps: [
+    {
+      id: '3f0f02a5-70a0-4d98-a682-b0121ebe258c',
+      type: 'protocol',
+      action: {
+        fromChainId: 42161,
+        fromAmount: '1000000',
+        fromToken: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999698',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        },
+        toChainId: 42161,
+        toToken: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999698',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        },
+        slippage: 0.001,
+        fromAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+        toAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+        jitoBundle: false,
+        integratorFees: {
+          feePercent: 0.0025,
+          sourceAmount: { s: 1, e: 6, c: [ 1000000 ] },
+          totalFee: { s: 1, e: 3, c: [ 2500 ] },
+          lifiFee: { s: 1, e: 3, c: [ 2500 ] },
+          integratorFee: { s: 1, e: 0, c: [ 0 ] },
+          integratorConfig: { feeType: 'FIXED', fee: 0.0025 }
+        },
+        integratorId: 'lifi-sdk'
+      },
+      estimate: {
+        fromAmount: '1000000',
+        toAmount: '997500',
+        toAmountMin: '997500',
+        tool: 'feeCollection',
+        approvalAddress: '0xC18D9E84b8687A2645447A61e52c455Dac1675e1',
+        gasCosts: [
+          {
+            type: 'SEND',
+            price: '20062000',
+            estimate: '130000',
+            limit: '2695000',
+            amount: '2608060000000',
+            amountUSD: '0.0052',
+            token: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: 42161,
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'ETH',
+              coinKey: 'ETH',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
+              priceUSD: '1991.59',
+              tags: [],
+              verificationStatus: 'unverified',
+              verificationStatusBreakdown: []
+            }
+          }
+        ],
+        feeCosts: [
+          {
+            name: 'LIFI Fixed Fee',
+            description: 'Fixed LIFI fee, independent of any other fee',
+            token: {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: 42161,
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              coinKey: 'USDC',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+              priceUSD: '0.999698',
+              tags: [ 'stablecoin' ],
+              verificationStatus: 'unverified',
+              verificationStatusBreakdown: []
+            },
+            amount: '2500',
+            amountUSD: '0.0025',
+            percentage: '0.0025',
+            included: true,
+            feeSplit: { integratorFee: '0', lifiFee: '2500' }
+          }
+        ],
+        executionDuration: 0
+      },
+      tool: 'feeCollection',
+      toolDetails: {
+        key: 'feeCollection',
+        name: 'Integrator Fee',
+        logoURI: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/protocols/feeCollection.svg'
+      }
+    },
+    {
+      id: 'd31ee551-3f51-4d85-b998-95e1a1edf5c0',
+      type: 'cross',
+      action: {
+        fromChainId: 42161,
+        fromAmount: '997500',
+        fromToken: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999698',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        },
+        toChainId: 10,
+        toToken: {
+          address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+          chainId: 10,
+          symbol: 'DAI',
+          decimals: 18,
+          name: 'DAI Stablecoin',
+          coinKey: 'DAI',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png',
+          priceUSD: '0.998854',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'unverified',
+          verificationStatusBreakdown: []
+        },
+        slippage: 0.001,
+        fromAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+        toAddress: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c',
+        jitoBundle: false,
+        integratorFees: {
+          feePercent: 0.0025,
+          sourceAmount: { s: 1, e: 6, c: [ 1000000 ] },
+          totalFee: { s: 1, e: 3, c: [ 2500 ] },
+          lifiFee: { s: 1, e: 3, c: [ 2500 ] },
+          integratorFee: { s: 1, e: 0, c: [ 0 ] },
+          integratorConfig: { feeType: 'FIXED', fee: 0.0025 }
+        },
+        integratorId: 'lifi-sdk',
+        destinationGasConsumption: '0'
+      },
+      estimate: {
+        tool: 'relaydepository',
+        fromAmount: '997500',
+        toAmount: '977836631995038260',
+        toAmountMin: '976858795363039133',
+        gasCosts: [
+          {
+            type: 'SEND',
+            price: '20062000',
+            estimate: '86000',
+            limit: '2629000',
+            amount: '1725332000000',
+            amountUSD: '0.0034',
+            token: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: 42161,
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'ETH',
+              coinKey: 'ETH',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
+              priceUSD: '1991.59',
+              tags: [],
+              verificationStatus: 'unverified',
+              verificationStatusBreakdown: []
+            }
+          }
+        ],
+        executionDuration: 2,
+        approvalAddress: '0xf70da97812CB96acDF810712Aa562db8dfA3dbEF',
+        feeCosts: [
+          {
+            name: 'Relayer Gas fee',
+            description: 'Relay bridge gas fee',
+            token: {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: 42161,
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              coinKey: 'USDC',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+              priceUSD: '0.999698',
+              tags: [ 'stablecoin' ],
+              verificationStatus: 'unverified',
+              verificationStatusBreakdown: []
+            },
+            amount: '30',
+            amountUSD: '0.0001',
+            percentage: '0.0000',
+            included: true
+          },
+          {
+            name: 'Relayer Service fee',
+            description: 'Relay bridge service fee',
+            token: {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: 42161,
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              coinKey: 'USDC',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+              priceUSD: '0.999698',
+              tags: [ 'stablecoin' ],
+              verificationStatus: 'unverified',
+              verificationStatusBreakdown: []
+            },
+            amount: '20196',
+            amountUSD: '0.0202',
+            percentage: '0.0202',
+            included: true
+          }
+        ]
+      },
+      tool: 'relaydepository',
+      toolDetails: {
+        key: 'relaydepository',
+        name: 'Relay',
+        logoURI: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/relay.svg'
+      }
+    }
+  ],
+  integrator: 'lifi-sdk',
+  transactionRequest: {
+    value: '0x0',
+    to: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+    data: '0xa3443faa000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000002401790a91809f4519416559e323a4a217d67cc1fcb1de2ab159ebacbf65fba9766000000000000000000000000cf38221886f36522da520669acc24e32ce5e4f2cd563be2875f167877b2e3faa01a2a696248af04a89cc999f2bd98a3733783473000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e5831000000000000000000000000cf38221886f36522da520669acc24e32ce5e4f2c00000000000000000000000000000000000000000000000000000000000f387c000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f72656c61796465706f7369746f7279000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000086c6966692d73646b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000c18d9e84b8687a2645447a61e52c455dac1675e1000000000000000000000000c18d9e84b8687a2645447a61e52c455dac1675e1000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e5831000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e583100000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a4332d746b000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e583100000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000c06ebbefd94032b85424d51906e2a335efae264b00000000000000000000000000000000000000000000000000000000000009c400000000000000000000000000000000000000000000000000000000',
+    from: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c',
+    chainId: 42161,
+    gasPrice: '0x1321f30',
+    gasLimit: '0x2a8bb1'
+  },
+  transactionId: '0xd563be2875f167877b2e3faa01a2a696248af04a89cc999f2bd98a3733783473'
+}

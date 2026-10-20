@@ -1,0 +1,21 @@
+UnitPPRouterWithdraw::withdrawToUnderlying
+├── It succeeds with fee
+├── It waives dust fee instead of reverting
+├── It succeeds no fee
+├── It zero fee recipient defaults to sender
+├── It reverts on zero withdrawal
+├── It reverts on zero recipient
+├── It reverts on asset mismatch
+├── It reverts on non canonical token id out
+├── It reverts on invalid processor
+├── It reverts on native gas mismatch
+├── It reverts on fee exceeds max
+├── It max relay fee zero is uncapped
+├── It reverts on fee exceeds withdrawal
+├── It reverts below min underlying
+├── It recipient shares zero fee takes all
+├── It forwards native gas
+└── It reverts if vault underpays
+
+UnitPPRouterWithdraw::quoteWithdraw
+└── It matches preview redeem

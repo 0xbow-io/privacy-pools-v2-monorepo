@@ -1,0 +1,283 @@
+name: Stellar SDK Pre-Release
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'packages/stellar-sdk/**'
+      - 'packages/core-sdk/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  pre-release:
+    name: Stellar SDK Pre-Release
+    runs-on: Big_Guy
+    steps:
+      - name: Clean up old pre-releases (keep last 10)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/releases" --paginate --jq \
+            '.[] | select(.prerelease == true and (.tag_name | startswith("stellar-sdk-prerelease-"))) | .id' \
+          | tail -n +11 \
+          | while read -r RELEASE_ID; do
+              TAG=$(gh api "repos/${{ github.repository }}/releases/${RELEASE_ID}" --jq '.tag_name')
+              echo "Deleting old pre-release: ${TAG} (${RELEASE_ID})"
+              gh api "repos/${{ github.repository }}/releases/${RELEASE_ID}" --method DELETE
+              gh api "repos/${{ github.repository }}/git/refs/tags/${TAG}" --method DELETE 2>/dev/null || true
+            done
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+          fetch-depth: 0
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Bundles @privacy-pools-v2/core-sdk into the tarball (tsup.prerelease.config.ts's
+      # noExternal) so the published package is installable standalone.
+      - name: Build stellar-sdk (bundle workspace dependencies)
+        working-directory: packages/stellar-sdk
+        run: npx tsup --config tsup.prerelease.config.ts
+
+      - name: Generate pre-release version
+        id: version
+        working-directory: packages/stellar-sdk
+        run: |
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          PKG_NAME=$(node -p "require('./package.json').name")
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          PRERELEASE_VERSION="${BASE_VERSION}-prerelease.${SHORT_SHA}"
+          TAG="stellar-sdk-prerelease-${SHORT_SHA}"
+
+          echo "version=${PRERELEASE_VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "short-sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "pkg-name=${PKG_NAME}" >> $GITHUB_OUTPUT
+
+          echo "Package: ${PKG_NAME}"
+          echo "Pre-release version: ${PRERELEASE_VERSION}"
+          echo "Tag: ${TAG}"
+
+      - name: Set pre-release version
+        working-directory: packages/stellar-sdk
+        run: |
+          npm pkg set "version=${{ steps.version.outputs.version }}"
+          npm pkg delete "private"
+          npm pkg delete "dependencies.@privacy-pools-v2/core-sdk"
+
+      - name: Create npm tarball
+        id: pack
+        working-directory: packages/stellar-sdk
+        run: |
+          pnpm pack
+          TARBALL=$(ls *.tgz)
+          echo "tarball=${TARBALL}" >> $GITHUB_OUTPUT
+          echo "Packed: ${TARBALL}"
+
+      - name: Package circuit artifacts
+        id: circuits
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          CIRCUITS_TARBALL="circuit-artifacts-${SHORT_SHA}.tar.gz"
+          STAGE="$(mktemp -d)"
+          tar -C packages/circuits/build \
+            --exclude='*.r1cs' \
+            --exclude='*.sym' \
+            --exclude='*.sol' \
+            -cf - . | tar -C "${STAGE}" -xf -
+          # The circuits are GPL-3.0-or-later (they include circomlib), so the compiled artifacts ship
+          # with the license, the notices and their Corresponding Source.
+          cp packages/circuits/LICENSE NOTICE "${STAGE}/"
+          mkdir -p "${STAGE}/source"
+          cp -R packages/circuits/circuits packages/circuits/circuits.json packages/circuits/circomkit.json \
+            packages/circuits/package.json packages/circuits/tsconfig.json packages/circuits/scripts \
+            "${STAGE}/source/"
+          echo "source/ is the Corresponding Source of these GPL-3.0-or-later artifacts, taken from" \
+            "packages/circuits at commit $(git rev-parse HEAD); circomlib is pinned in source/package.json." \
+            > "${STAGE}/SOURCE.txt"
+          tar -czf "${CIRCUITS_TARBALL}" -C "${STAGE}" .
+          echo "tarball=${CIRCUITS_TARBALL}" >> $GITHUB_OUTPUT
+          echo "Packed circuits: ${CIRCUITS_TARBALL} ($(du -h ${CIRCUITS_TARBALL} | cut -f1))"
+
+      - name: Create GitHub Pre-Release
+        id: release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: '${{ steps.version.outputs.pkg-name }}@${{ steps.version.outputs.version }}'
+          prerelease: true
+          generate_release_notes: false
+          body: |
+            Pre-release build from `${{ github.ref_name }}` at [`${{ steps.version.outputs.short-sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}).
+
+            ## Install
+
+            Since this is a private repository, you need a GitHub Personal Access Token to download the tarball.
+
+            ### 1. Generate a GitHub Personal Access Token
+
+            1. Go to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
+            2. Click **"Generate new token (classic)"**
+            3. Select the **`repo`** scope (grants read access to private repos)
+            4. Click **"Generate token"** and copy it
+
+            ### 2. Download the tarball
+
+            ```bash
+            curl -L \
+              -H "Authorization: token <YOUR_GITHUB_TOKEN>" \
+              -H "Accept: application/octet-stream" \
+              "${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/${{ steps.pack.outputs.tarball }}" \
+              -o ${{ steps.pack.outputs.tarball }}
+            ```
+
+            ### 3. Install with pnpm
+
+            ```bash
+            pnpm add ./${{ steps.pack.outputs.tarball }}
+            ```
+          files: |
+            packages/stellar-sdk/${{ steps.pack.outputs.tarball }}
+            ${{ steps.circuits.outputs.tarball }}
+
+      - name: Get asset IDs and update release body
+        id: asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SDK_ASSET_ID=$(gh api "repos/${{ github.repository }}/releases/${{ steps.release.outputs.id }}/assets" --jq '.[] | select(.name | endswith(".tgz")) | .id')
+          CIRCUITS_ASSET_ID=$(gh api "repos/${{ github.repository }}/releases/${{ steps.release.outputs.id }}/assets" --jq '.[] | select(.name | startswith("circuit-artifacts")) | .id')
+
+          SDK_API_URL="https://api.github.com/repos/${{ github.repository }}/releases/assets/${SDK_ASSET_ID}"
+          CIRCUITS_API_URL="https://api.github.com/repos/${{ github.repository }}/releases/assets/${CIRCUITS_ASSET_ID}"
+
+          echo "sdk-api-url=${SDK_API_URL}" >> $GITHUB_OUTPUT
+          echo "circuits-api-url=${CIRCUITS_API_URL}" >> $GITHUB_OUTPUT
+
+          echo "SDK Asset ID: ${SDK_ASSET_ID}"
+          echo "Circuits Asset ID: ${CIRCUITS_ASSET_ID}"
+
+          gh api "repos/${{ github.repository }}/releases/${{ steps.release.outputs.id }}" \
+            --method PATCH \
+            --field body="$(cat <<EOF
+          Pre-release build from \`${{ github.ref_name }}\` at [\`${{ steps.version.outputs.short-sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}).
+
+          ## Install
+
+          Since this is a private repository, you need a GitHub Personal Access Token to download the assets.
+
+          ### 1. Generate a GitHub Personal Access Token
+
+          1. Go to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
+          2. Click **"Generate new token (classic)"**
+          3. Select the **\`repo\`** scope (grants read access to private repos)
+          4. Click **"Generate token"** and copy it
+
+          ### 2. Download the SDK tarball
+
+          \`\`\`bash
+          curl -L \\
+            -H "Authorization: token <YOUR_GITHUB_TOKEN>" \\
+            -H "Accept: application/octet-stream" \\
+            "${SDK_API_URL}" \\
+            -o ${{ steps.pack.outputs.tarball }}
+          \`\`\`
+
+          ### 3. Install SDK with pnpm
+
+          \`\`\`bash
+          pnpm add ./${{ steps.pack.outputs.tarball }}
+          \`\`\`
+
+          ### 4. Download circuit artifacts
+
+          \`\`\`bash
+          curl -L \\
+            -H "Authorization: token <YOUR_GITHUB_TOKEN>" \\
+            -H "Accept: application/octet-stream" \\
+            "${CIRCUITS_API_URL}" \\
+            -o ${{ steps.circuits.outputs.tarball }}
+          \`\`\`
+
+          ### 5. Extract circuit artifacts
+
+          \`\`\`bash
+          mkdir -p circuit-artifacts
+          tar -xzf ${{ steps.circuits.outputs.tarball }} -C circuit-artifacts
+          \`\`\`
+
+          ### 6. Usage
+
+          \`\`\`ts
+          import { LocalCircuitArtifacts } from "@privacy-pools-v2/core-sdk";
+
+          const circuitArtifacts = new LocalCircuitArtifacts("./circuit-artifacts");
+          \`\`\`
+          EOF
+          )"
+
+      - name: Installation instructions
+        run: |
+          SDK_API_URL="${{ steps.asset.outputs.sdk-api-url }}"
+          CIRCUITS_API_URL="${{ steps.asset.outputs.circuits-api-url }}"
+
+          echo ""
+          echo "══════════════════════════════════════════════════════════════"
+          echo "  stellar-sdk Pre-release published successfully!"
+          echo "══════════════════════════════════════════════════════════════"
+          echo ""
+          echo "  1. Download the SDK tarball (requires a GitHub token with repo scope):"
+          echo ""
+          echo "     curl -L -H \"Authorization: token <YOUR_GITHUB_TOKEN>\" -H \"Accept: application/octet-stream\" \\"
+          echo "       \"${SDK_API_URL}\" \\"
+          echo "       -o ${{ steps.pack.outputs.tarball }}"
+          echo ""
+          echo "  2. Install SDK with pnpm:"
+          echo ""
+          echo "     pnpm add ./${{ steps.pack.outputs.tarball }}"
+          echo ""
+          echo "  3. Download circuit artifacts:"
+          echo ""
+          echo "     curl -L -H \"Authorization: token <YOUR_GITHUB_TOKEN>\" -H \"Accept: application/octet-stream\" \\"
+          echo "       \"${CIRCUITS_API_URL}\" \\"
+          echo "       -o ${{ steps.circuits.outputs.tarball }}"
+          echo ""
+          echo "  4. Extract circuit artifacts:"
+          echo ""
+          echo "     mkdir -p circuit-artifacts"
+          echo "     tar -xzf ${{ steps.circuits.outputs.tarball }} -C circuit-artifacts"
+          echo ""
+          echo "  5. Usage:"
+          echo ""
+          echo "     import { LocalCircuitArtifacts } from \"@privacy-pools-v2/core-sdk\";"
+          echo "     const circuitArtifacts = new LocalCircuitArtifacts(\"./circuit-artifacts\");"
+          echo ""
+          echo "══════════════════════════════════════════════════════════════"
+          echo ""

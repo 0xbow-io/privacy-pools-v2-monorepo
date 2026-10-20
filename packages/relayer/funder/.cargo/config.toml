@@ -1,0 +1,5 @@
+# Link with the system `cc`/ld instead of rustup's bundled rust-lld. On this NixOS box the rustup
+# lld wrapper points at a garbage-collected nix-store path. Harmless elsewhere (Docker, CI);
+# delete once the local rustup toolchain is reinstalled.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "linker-features=-lld"]

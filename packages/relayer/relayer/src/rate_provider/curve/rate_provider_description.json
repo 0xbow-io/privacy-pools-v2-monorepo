@@ -1,0 +1,7 @@
+{
+    "provider": "Curve",
+    "known_currencies": [
+        { "chainType": "evm", "chainId": 1, "assetId": "*" },
+        { "chainType": "evm", "chainId": 42161, "assetId": "*" }
+    ]
+}

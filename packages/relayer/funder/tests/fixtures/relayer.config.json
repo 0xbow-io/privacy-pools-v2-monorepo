@@ -1,0 +1,75 @@
+{
+    "chains": {
+        "evm": [
+            {
+                "id": 1,
+                "name": "mainnet",
+                "rpc_url": "http://127.0.0.1:1",
+                "entrypoint_contract": "0x0000000000000000000000000000000000000001",
+                "relay_contract": "0x0000000000000000000000000000000000000001",
+                "pool_vault_contract": "0x0000000000000000000000000000000000000001",
+                "relay_swaps_contract": "0xd0395c08DD8eA7671a7A65bDca8E473e8E8260a8",
+                "allowed_processors": [],
+                "fee_receiver_address": "0x0000000000000000000000000000000000000001",
+                "signer_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "flat_fee_amount": "21000",
+                "quote_expiration_ms": 60000,
+                "native_currency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
+                "supported_assets": [
+                    { "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "ticker": "ETH", "quoter": "Native", "fee_bps": "10", "decimals": 18 },
+                    { "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "ticker": "WETH", "quoter": "Native", "decimals": "18" },
+                    { "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "ticker": "USDC", "quoter": "Cowswap", "decimals": 6 },
+                    { "address": "0xdac17f958d2ee523a2206206994597c13d831ec7", "ticker": "USDT", "quoter": "Cowswap", "decimals": "6" },
+                    {
+                        "address": "0x66051920D25af4E3596A8a46309F4D045F9D83B7",
+                        "ticker": "ppETH",
+                        "quoter": "Underlying",
+                        "underlying": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                        "decimals": 18
+                    },
+                    {
+                        "address": "0xC246aFb23482fF9596E9cee5f1f678eFe0EB1ad6",
+                        "ticker": "ppUSDC",
+                        "quoter": "Underlying",
+                        "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                        "zap": "0x9Ea986BcDF6784D85B518b15bEEE1E65b585817B",
+                        "decimals": 18
+                    },
+                    {
+                        "address": "0xA4cF419558Ef36CC6FfB666195684dC963910426",
+                        "ticker": "ppUSDT",
+                        "quoter": "Underlying",
+                        "underlying": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                        "decimals": 18
+                    }
+                ]
+            },
+            {
+                "id": "56",
+                "name": "bsc",
+                "rpc_url": "http://127.0.0.1:1",
+                "entrypoint_contract": "0x0000000000000000000000000000000000000001",
+                "relay_contract": "0x0000000000000000000000000000000000000001",
+                "pool_vault_contract": "0x0000000000000000000000000000000000000001",
+                "relay_swaps_contract": "0xd0395c08DD8eA7671a7A65bDca8E473e8E8260a8",
+                "fee_receiver_address": "0x0000000000000000000000000000000000000001",
+                "signer_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "quote_expiration_ms": 60000,
+                "native_currency": { "name": "BNB", "symbol": "BNB", "decimals": 18 },
+                "supported_assets": [
+                    { "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "ticker": "BNB", "quoter": "Native", "decimals": 18 },
+                    { "address": "0x55d398326f99059fF775485246999027B3197955", "ticker": "USDT", "quoter": "Uniswap", "decimals": 18 },
+                    {
+                        "address": "0x6C17bE9c864254CA4b2d36223f31AdE94B4d64c2",
+                        "ticker": "ppUSDT",
+                        "quoter": "Underlying",
+                        "underlying": "0x55d398326f99059fF775485246999027B3197955",
+                        "decimals": 18
+                    }
+                ]
+            }
+        ],
+        "stellar": []
+    },
+    "cors": { "origins": ["https://example.org"] }
+}

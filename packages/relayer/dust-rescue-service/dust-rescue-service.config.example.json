@@ -1,0 +1,23 @@
+{
+    "chains": [
+        {
+            "chainId": 42161,
+            "rpcUrl": "https://arb1.arbitrum.io/rpc",
+            "aspUrl": "https://asp.example.com",
+            "circuitArtifactsDir": "/app/circuit-artifacts",
+            "minWorthUsdMicros": "2000000"
+        },
+        {
+            "chainId": 8453,
+            "rpcUrl": "https://mainnet.base.org",
+            "aspUrl": "https://asp.example.com",
+            "circuitArtifactsDir": "/app/circuit-artifacts",
+            "minWorthUsdMicros": "2000000"
+        }
+    ],
+    "pubsubTopic": "dust-rescue.pending",
+    "firestoreCollection": "dustRescueJobs",
+    "sweepMaxAttempts": 5,
+    "sweepBatchSize": 30,
+    "notFoundAgeOutHours": 6
+}

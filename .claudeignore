@@ -1,0 +1,10 @@
+# Circuit build artifacts (binary + large generated JSON)
+packages/circuits/build/
+
+# Lockfiles
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Node modules
+node_modules/

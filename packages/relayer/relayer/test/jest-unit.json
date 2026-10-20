@@ -1,0 +1,21 @@
+{
+    "moduleFileExtensions": [
+        "js",
+        "json",
+        "ts"
+    ],
+    "outputFile": "ctrf-unit-report.json",
+    "rootDir": ".",
+    "testEnvironment": "node",
+    "testRegex": ".spec.ts$",
+    "transform": {
+        "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "reporters": [
+        "default",
+        [
+            "jest-ctrf-json-reporter",
+            {}
+        ]
+    ]
+}

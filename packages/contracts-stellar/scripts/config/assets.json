@@ -1,0 +1,12 @@
+{
+  "assets": [
+    {
+      "name": "Native XLM",
+      "type": "native",
+      "enabled": true,
+      "minDepositAmount": "100000",
+      "vettingFeeBps": 100,
+      "maxRelayFee": "1000000"
+    }
+  ]
+}

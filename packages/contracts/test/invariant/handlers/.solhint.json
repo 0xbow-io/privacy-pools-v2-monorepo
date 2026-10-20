@@ -1,0 +1,23 @@
+{
+  "rules": {
+    "private-vars-leading-underscore": "off",
+
+    "state-visibility": "warn",
+    "style-guide-casing": [
+      "warn",
+      {
+        "ignorePublicFunctions": true,
+        "ignoreExternalFunctions": true,
+        "ignoreInternalFunctions": false,
+        "ignorePrivateFunctions": false,
+        "ignoreModifiers": false,
+        "ignoreImmutables": false,
+        "ignoreConstants": true,
+        "ignoreVariables": true,
+        "ignoreEnums": false,
+        "ignoreStructs": false,
+        "ignoreEvents": false
+      }
+    ]
+  }
+}

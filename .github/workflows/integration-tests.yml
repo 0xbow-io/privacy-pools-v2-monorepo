@@ -1,0 +1,63 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: integration-tests
+  cancel-in-progress: true
+
+jobs:
+  integration-tests:
+    name: SDK Integration Tests
+    runs-on: Big_Guy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `--only` builds just the listed packages, ordered by the dependency graph. Without it, turbo's
+      # `^build` also builds circuits (circom) and contracts (forge), which these runners don't install
+      # and no SDK build needs.
+      - name: Build SDK
+        run: pnpm turbo run build --filter=@privacy-pools-v2/core-sdk --filter=@privacy-pools-v2/evm-sdk --only
+
+      - name: Write integration .env
+        working-directory: apps/sample/tests/integration
+        run: |
+          cat <<EOF > .env
+          RPC_URL=https://sepolia.infura.io/v3/${{ secrets.INFURA_API_KEY }}
+          CHAIN_ID=${{ vars.CHAIN_ID }}
+          FAUCET_PRIVATE_KEY=${{ secrets.FAUCET_PRIVATE_KEY }}
+          POSTMAN_ROLE_PK=${{ secrets.POSTMAN_ROLE_PK }}
+          ENTRYPOINT_ADDRESS=${{ vars.ENTRYPOINT_ADDRESS }}
+          KEYSTORE_ADDRESS=${{ vars.KEYSTORE_ADDRESS }}
+          POOL_ADDRESS=${{ vars.POOL_ADDRESS }}
+          ASP_REGISTRY_ADDRESS=${{ vars.ASP_REGISTRY_ADDRESS }}
+          ASP_PUBLIC_KEY=${{ vars.ASP_PUBLIC_KEY }}
+          RELAYER_URL=${{ vars.RELAYER_URL }}
+          RELAYER_ADDRESS=${{ vars.RELAYER_ADDRESS }}
+          RELAYER_PROCESSOR_ADDRESS=${{ vars.RELAYER_PROCESSOR_ADDRESS }}
+          EOF
+
+      - name: Run integration tests
+        run: pnpm --filter @privacy-pools-v2/sample test:integration

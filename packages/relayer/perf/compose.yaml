@@ -1,0 +1,137 @@
+# Perf stack: anvil (sepolia fork) <- rpc-proxy (instrumented) <- relayer.
+# Mirrors ../e2e/compose.yaml, inserting the counting/fault-injection proxy
+# between the relayer and the chain.
+#
+# relayer and rpc-proxy publish loopback ports so the vitest suite and the
+# latency bench can run from the host:
+#   relayer:   http://localhost:3210
+#   rpc-proxy: http://localhost:8546  (control API under /__perf/)
+services:
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    # Unlike e2e, no pinned fork block by default: the public fallback RPC is a
+    # pruned full node that can't serve old state. Set FORK_BLOCK_NUMBER (with
+    # an archive ANVIL_FORK_URL) if you need a deterministic fork.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        exec anvil --host=0.0.0.0
+        --fork-url=${ANVIL_FORK_URL:-https://ethereum-sepolia-rpc.publicnode.com}
+        ${FORK_BLOCK_NUMBER:+--fork-block-number=${FORK_BLOCK_NUMBER}}
+    expose:
+      - "8545"
+    healthcheck:
+      test: ["CMD", "cast", "block-number", "--rpc-url", "http://localhost:8545"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # Mainnet fork — lets the perf suite exercise the REAL Curve rate-provider
+  # path (spot read + 50-block historic self-comparison) on chain 1. Anvil
+  # forwards pre-fork-block state reads upstream; the 50-block lookback stays
+  # inside a public full node's ~128-block window.
+  anvil-mainnet:
+    image: ghcr.io/foundry-rs/foundry:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        exec anvil --host=0.0.0.0
+        --fork-url=${ANVIL_FORK_URL_MAINNET:-https://ethereum-rpc.publicnode.com}
+    expose:
+      - "8545"
+    healthcheck:
+      test: ["CMD", "cast", "block-number", "--rpc-url", "http://localhost:8545"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  rpc-proxy:
+    image: node:22-slim
+    volumes:
+      - ./src:/perf/src:ro
+    command: ["node", "/perf/src/rpc-proxy.mjs"]
+    environment:
+      - UPSTREAM=http://anvil:8545
+      - PORT=8546
+    ports:
+      - "127.0.0.1:8546:8546"
+    depends_on:
+      anvil:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8546/__perf/health').then(r => { if (!r.ok) process.exit(1) })"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+
+  rpc-proxy-mainnet:
+    image: node:22-slim
+    volumes:
+      - ./src:/perf/src:ro
+    command: ["node", "/perf/src/rpc-proxy.mjs"]
+    environment:
+      - UPSTREAM=http://anvil-mainnet:8545
+      - PORT=8546
+    ports:
+      - "127.0.0.1:8547:8546"
+    depends_on:
+      anvil-mainnet:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8546/__perf/health').then(r => { if (!r.ok) process.exit(1) })"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+
+  relayer:
+    build:
+      context: ../../..
+      dockerfile: packages/relayer/relayer/Dockerfile.staging
+    ports:
+      - "127.0.0.1:3210:3000"
+    # The image bakes relayer.config.example.json (placeholder signer key) as
+    # its config; mount the perf config instead — the committed dev config with
+    # mainnet USDC/USDT flipped to the Curve quoter (see relayer.perf.config.json)
+    # so chain 1 exercises the real Curve rate-provider path against the fork.
+    volumes:
+      - ./relayer.perf.config.json:/app/packages/relayer/relayer/relayer.config.json:ro
+    environment:
+      - PORT=3000
+      - RPC_URL_EVM_11155111=http://rpc-proxy:8546
+      - RPC_URL_EVM_1=http://rpc-proxy-mainnet:8546
+      - CONFIG_PATH=/app/packages/relayer/relayer/relayer.config.json
+      - QUOTE_EXPIRATION_MS=600000
+      - ALLOW_MOCK_RATE_PROVIDER=true
+    depends_on:
+      rpc-proxy:
+        condition: service_healthy
+      rpc-proxy-mainnet:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/v1/ping').then(r => { if (!r.ok) process.exit(1) })"]
+      start_period: 15s
+      start_interval: 1s
+      interval: 60s
+      timeout: 3s
+      retries: 3
+
+  # CI runner (used by `pnpm docker`); local flows run vitest from the host.
+  tests:
+    build:
+      context: ../../..
+      dockerfile: packages/relayer/perf/Dockerfile
+    environment:
+      - RELAYER_URL=http://relayer:3000
+      - PROXY_URL=http://rpc-proxy:8546
+      - PROXY_MAINNET_URL=http://rpc-proxy-mainnet:8546
+      - PERF_BASELINE=${PERF_BASELINE:-}
+      - PERF_DEADLINE_BUDGET_MS=${PERF_DEADLINE_BUDGET_MS:-9000}
+    volumes:
+      - ./results:/app/packages/relayer/perf/results
+    depends_on:
+      relayer:
+        condition: service_healthy

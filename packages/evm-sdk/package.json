@@ -1,0 +1,71 @@
+{
+  "name": "@privacy-pools-v2/evm-sdk",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Privacy Pools V2 EVM-specific SDK — viem/LiFi-backed chain adapters, pool sessions, and stealth-address module built on @privacy-pools-v2/core-sdk",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./stealth": {
+      "types": "./dist/stealth.d.ts",
+      "import": "./dist/stealth.js",
+      "require": "./dist/stealth.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "pnpm typecheck && vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "pnpm test:e2e:parallel",
+    "test:e2e:single": "EVM_E2E=1 EVM_E2E_WORKERS=1 vitest run --config e2e/vitest.config.ts",
+    "test:e2e:parallel": "EVM_E2E=1 EVM_E2E_WORKERS=4 vitest run --config e2e/vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.eslint.json",
+    "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
+    "clean": "rm -rf dist",
+    "format": "prettier --check \"{src,test}/**/*.{js,ts,json}\"",
+    "format:fix": "prettier --write \"{src,test}/**/*.{js,ts,json}\"",
+    "lint": "eslint -c ./eslint.config.mjs",
+    "lint:fix": "eslint --fix -c ./eslint.config.mjs"
+  },
+  "dependencies": {
+    "@lifi/sdk": "^4.0.0",
+    "@lifi/types": "^17.0.0",
+    "@noble/ciphers": "2.1.1",
+    "@noble/curves": "2.0.1",
+    "@noble/hashes": "2.0.1",
+    "@privacy-pools-v2/contracts": "workspace:*",
+    "@privacy-pools-v2/core-sdk": "workspace:*",
+    "circomlibjs": "0.1.7",
+    "snarkjs": "0.7.5",
+    "viem": "2.45.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:lint",
+    "@privacy-pools-v2/e2e-suite": "workspace:*",
+    "@privacy-pools-v2/mock-asp": "workspace:*",
+    "@tsconfig/node22": "catalog:shared",
+    "@types/node": "catalog:shared",
+    "eslint": "catalog:lint",
+    "eslint-config-prettier": "catalog:lint",
+    "globals": "catalog:lint",
+    "multiformats": "^14.0.0",
+    "@types/snarkjs": "^0.7.9",
+    "tsup": "^8.0.0",
+    "typescript": "catalog:shared",
+    "typescript-eslint": "catalog:lint",
+    "vitest": "^1.5.0"
+  }
+}

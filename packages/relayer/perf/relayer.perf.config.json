@@ -1,0 +1,110 @@
+{
+    "chains": {
+        "evm": [
+            {
+                "id": 11155111,
+                "name": "sepolia",
+                "rpc_url": "http://localhost:8545",
+                "entrypoint_contract": "0x3191ED61Bc961667f368600caf147F08CffA2559",
+                "relay_contract": "0x87a5BFbAd7cA6B1FF3d9E631877B5930f17C24B0",
+                "pool_vault_contract": "0x4DECEef285a24CA05999870887C895042731D7cB",
+                "allowed_processors": [],
+                "fee_receiver_address": "0x0eFcb6800d1B42De4b42222Da74aA04Aa25AC6Cb",
+                "signer_private_key": "0xe19c8b6db4f370d5274b4fe8acfbe017c15a9c020763479feba25a18e7b98f82",
+                "flat_fee_amount": "21000",
+                "native_currency": {
+                    "name": "Ether",
+                    "symbol": "ETH",
+                    "decimals": 18
+                },
+                "supported_assets": [
+                    {
+                        "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "ticker": "ETH",
+                        "quoter": "Native",
+                        "fee_bps": "10",
+                        "decimals": 18
+                    },
+                    {
+                        "address": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+                        "ticker": "USDC",
+                        "quoter": "Mock",
+                        "decimals": 6
+                    },
+                    {
+                        "address": "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0",
+                        "ticker": "USDT",
+                        "quoter": "Mock",
+                        "decimals": 6
+                    }
+                ]
+            },
+            {
+                "id": 1,
+                "name": "mainnet",
+                "rpc_url": "http://localhost:8545",
+                "entrypoint_contract": "0x02a1E00294291d0E938eC92A8c2883044524ec4B",
+                "relay_contract": "0xeD30CB5e05684b0C3C6345c990576607F070A7b4",
+                "pool_vault_contract": "0x8884DC0c0DEcd2558F128ee00dD522ABfa21Dd52",
+                "allowed_processors": [],
+                "fee_receiver_address": "0x0eFcb6800d1B42De4b42222Da74aA04Aa25AC6Cb",
+                "signer_private_key": "0xe19c8b6db4f370d5274b4fe8acfbe017c15a9c020763479feba25a18e7b98f82",
+                "flat_fee_amount": "21000",
+                "quote_expiration_ms": 60000,
+                "native_currency": {
+                    "name": "Ether",
+                    "symbol": "ETH",
+                    "decimals": 18
+                },
+                "supported_assets": [
+                    {
+                        "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "ticker": "ETH",
+                        "quoter": "Native",
+                        "fee_bps": "10",
+                        "decimals": 18
+                    },
+                    {
+                        "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                        "ticker": "USDC",
+                        "quoter": "Curve",
+                        "decimals": 6
+                    },
+                    {
+                        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                        "ticker": "USDT",
+                        "quoter": "Curve",
+                        "decimals": 6
+                    }
+                ]
+            },
+            {
+                "id": 4114,
+                "name": "citrea",
+                "rpc_url": "http://localhost:8545",
+                "entrypoint_contract": "0xdc3b42cBE2a967Cc5212a2E9b0986254798317f1",
+                "relay_contract": "0x224fD8EB6b7bE6D23189CC22dd04DD7E7aCD59Fd",
+                "pool_vault_contract": "0x4A20b3ae656339b9707C61992dCdA642366D3004",
+                "allowed_processors": [],
+                "fee_receiver_address": "0x0eFcb6800d1B42De4b42222Da74aA04Aa25AC6Cb",
+                "signer_private_key": "0xe19c8b6db4f370d5274b4fe8acfbe017c15a9c020763479feba25a18e7b98f82",
+                "flat_fee_amount": "21000",
+                "quote_expiration_ms": 60000,
+                "native_currency": {
+                    "name": "Citrea Bitcoin",
+                    "symbol": "cBTC",
+                    "decimals": 18
+                },
+                "supported_assets": [
+                    {
+                        "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "ticker": "cBTC",
+                        "quoter": "Native",
+                        "fee_bps": "10",
+                        "decimals": 18
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,15 @@
+forge-std/=lib/forge-std/src
+solady/=lib/solady
+
+abstracts/=src/abstracts
+contracts/=src/contracts
+interfaces/=src/interfaces
+libraries/=src/libraries
+utils/=src/utils
+test/=test/
+
+@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
+@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/
+
+@lean-imt/=lib/lean-imt/
+poseidon-solidity/=node_modules/poseidon-solidity/

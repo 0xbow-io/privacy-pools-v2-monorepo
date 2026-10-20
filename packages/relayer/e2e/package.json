@@ -1,0 +1,40 @@
+{
+    "name": "e2e",
+    "version": "1.0.1",
+    "description": "",
+    "author": "",
+    "private": true,
+    "license": "GPL-3.0-or-later",
+    "dependencies": {
+        "@privacy-pools-v2/core-sdk": "workspace:*",
+        "@privacy-pools-v2/evm-sdk": "workspace:*",
+        "@zk-kit/lean-imt": "^2.1.0",
+        "viem": "catalog:shared"
+    },
+    "devDependencies": {
+        "@tsconfig/node22": "catalog:shared",
+        "@types/node": "catalog:shared",
+        "@types/supertest": "^6.0.2",
+        "supertest": "^7.0.0",
+        "typescript": "catalog:shared",
+        "vitest": "catalog:shared"
+    },
+    "scripts": {
+        "test": "vitest run",
+        "test:full": "TEST_SUITE=full vitest run",
+        "test:details": "TEST_SUITE=full vitest run -t Details",
+        "test:quote": "TEST_SUITE=full vitest run -t Quote",
+        "test:relay": "TEST_SUITE=full vitest run -t Relay",
+        "docker": "docker compose -f compose.yaml up --build --abort-on-container-exit --exit-code-from tests && docker compose -f compose.yaml down",
+        "docker:full": "TEST_SUITE=full pnpm docker",
+        "docker:full:clean": "TEST_SUITE=full pnpm docker:clean",
+        "docker:clean": "docker compose -f compose.yaml build --no-cache && docker compose -f compose.yaml up --build --abort-on-container-exit --exit-code-from tests && docker compose -f compose.yaml down",
+        "docker:details": "TEST_SUITE=full VITEST_TEST=Details pnpm docker",
+        "docker:details:clean": "TEST_SUITE=full VITEST_TEST=Details pnpm docker:clean",
+        "docker:quote": "TEST_SUITE=full VITEST_TEST=Quote pnpm docker",
+        "docker:quote:clean": "TEST_SUITE=full VITEST_TEST=Quote pnpm docker:clean",
+        "docker:relay": "TEST_SUITE=full VITEST_TEST=Relay pnpm docker",
+        "docker:relay:clean": "TEST_SUITE=full VITEST_TEST=Relay pnpm docker:clean",
+        "docker:down": "docker compose -f compose.yaml down"
+    }
+}

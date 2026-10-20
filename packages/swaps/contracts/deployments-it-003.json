@@ -1,0 +1,53 @@
+[
+    {
+        "chainId": 1,
+        "chainName": "mainnet",
+        "status": "deployed",
+        "deployedAt": null,
+        "deployBlock": 25639398,
+        "contracts": {
+            "PoolVault": "0x8884DC0c0DEcd2558F128ee00dD522ABfa21Dd52",
+            "Entrypoint": "0x02a1E00294291d0E938eC92A8c2883044524ec4B",
+            "Keystore": "0x08806e1aD685FbF518dfa6795b90ca4c1F04Cd64",
+            "ASPRegistry": "0x4BeCb4c0175Df3dA440A694E73Fd3c459B8dd422",
+            "RelaySwaps": "0x1aB4008b96B1791EC693304aB8855b86Fe093724"
+        },
+        "note": "Pre-existing real mainnet deployment (not deployed by this team, ASP-registered — this is production infra, not a coordinated test stack like it-002's Arbitrum/Base pair). Verified 2026-08-20, four ways: the ASP's own GET /global/public/entrypoints listing (api-dev.0xbow.io), direct on-chain cast call for keystore()/aspRegistry() against PoolVault/Entrypoint, ~/mainnet_testing_contracts.md, and the live relayer's own relayer_v2_testing_config secret (RELAYER-TEST-CONFIG.JSON) — all four agree. See dust_Collector_deploy_handoff.md. `deployedAt` stays null (no known original-deploy date to us). `deployBlock` came from Etherscan's Contract -> Past Implementations section for PoolVault (0x8884DC0c0DEcd2558F128ee00dD522ABfa21Dd52) — PoolVault is an upgradeable proxy, so this is very likely the block the CURRENT implementation was set, not the proxy's own creation block. That distinction doesn't matter for this field's actual use (an event-scan lower bound, per ContractInteractor.ts's own doc comment: 'the SDK never persists this... first scan is a delta-fetch instead of a full from-deploymentBlock scan') — it only needs to be recent-and-not-later-than-now, which it is.",
+        "footgunWarning": "This chain's Entrypoint address (0x02a1E00294291d0E938eC92A8c2883044524ec4B) is textually IDENTICAL to chainId 10 (optimism)'s PoolVault address below — a real CREATE2/deployment-nonce coincidence across chains, confirmed correct on-chain per-chain, not a copy-paste bug. Re-verify on-chain before trusting a refactor that reshuffles these fields.",
+        "relaySwapsNote": "RelaySwaps redeployed 2026-09-24 at 0x1aB4008b96B1791EC693304aB8855b86Fe093724 (CREATE2 salt keccak(\"privacy-pools-v2:RelaySwaps:test:v3\"), HEAD of v2.0 incl. audit fixes #430: SwapRouting now carries DustRescue, ROUTING_TYPEHASH 0xe11f9c01..., owner 0x0967, LiFi Diamond + per-chain Executor + ERC20Proxy approved, zap list empty). Previous 0x5F3927f24Ec20F49B3850a5b78EB2015945E57F7 (test:v2, 2026-09-15) is pre-RC-32 layout: the OLD testing relayer build encodes that layout and will NOT work against this instance; the testing relayer must run the current v2.0 train and the testing frontend must switch processorAddress. POOL()/ENTRYPOINT() verified on-chain 2026-09-24."
+    },
+    {
+        "chainId": 10,
+        "chainName": "optimism",
+        "status": "deployed",
+        "deployedAt": null,
+        "deployBlock": 155397571,
+        "contracts": {
+            "PoolVault": "0x02a1E00294291d0E938eC92A8c2883044524ec4B",
+            "Entrypoint": "0x4A20b3ae656339b9707C61992dCdA642366D3004",
+            "Keystore": "0x4BeCb4c0175Df3dA440A694E73Fd3c459B8dd422",
+            "ASPRegistry": "0x8240695D24746D6ED38E9a4EEF57EF78b33158f4",
+            "RelaySwaps": "0x581Bc5D58597c0602f05C4f58E88418D27920980"
+        },
+        "note": "Pre-existing real Optimism deployment (not deployed by this team, ASP-registered — production infra, not a coordinated test stack). Verified 2026-08-20, four ways — see chainId 1 entry above for the method, and dust_Collector_deploy_handoff.md. `deployedAt` stays null. `deployBlock` came from Optimistic Etherscan's Contract -> Past Implementations section for PoolVault (0x02a1E00294291d0E938eC92A8c2883044524ec4B) — same proxy caveat as the mainnet entry above: likely an implementation-set block, not the proxy's creation block, which is fine for this field's actual use as an event-scan lower bound.",
+        "footgunWarning": "This chain's PoolVault address (0x02a1E00294291d0E938eC92A8c2883044524ec4B) is textually IDENTICAL to chainId 1 (mainnet)'s Entrypoint address above, and this chain's Keystore address (0x4BeCb4c0175Df3dA440A694E73Fd3c459B8dd422) is textually IDENTICAL to chainId 1's ASPRegistry address above. Both are real CREATE2/deployment-nonce coincidences, confirmed correct on-chain per-chain, not copy-paste bugs. Re-verify on-chain before trusting a refactor that reshuffles these fields.",
+        "relaySwapsNote": "RelaySwaps redeployed 2026-09-24 at 0x581Bc5D58597c0602f05C4f58E88418D27920980 (CREATE2 salt keccak(\"privacy-pools-v2:RelaySwaps:test:v3\"), HEAD of v2.0 incl. audit fixes #430: SwapRouting now carries DustRescue, ROUTING_TYPEHASH 0xe11f9c01..., owner 0x0967, LiFi Diamond + per-chain Executor + ERC20Proxy approved, zap list empty). Previous 0x3b20f2dfc225b54567561343a1c63eebb8db63f5 (test:v2, 2026-09-15) is pre-RC-32 layout: the OLD testing relayer build encodes that layout and will NOT work against this instance; the testing relayer must run the current v2.0 train and the testing frontend must switch processorAddress. POOL()/ENTRYPOINT() verified on-chain 2026-09-24."
+    },
+    {
+        "chainId": 56,
+        "chainName": "bsc",
+        "status": "deployed",
+        "deployedAt": null,
+        "deployBlock": 119190727,
+        "contracts": {
+            "PoolVault": "0x968950B99a92d6b96914474a318ac83ed37B3bE6",
+            "Entrypoint": "0x88b0e52636Cb19b9b00DD5c6eF9eE81bb5a2fD1F",
+            "Keystore": "0xCb037548418FAC4F4EC9273CeF16D79f9c1cb94a",
+            "ASPRegistry": "0x15bD39eF2184d92f71545a174eCb19904820346B",
+            "RelaySwaps": "0xbe16948700c538D71599dB99Df604a2EA9a7e61a"
+        },
+        "note": "Third-party TESTING stack on BSC (the one the testing relayer / .relayer-test-config.json serves; NOT it-002's own BSC stack 0xe7fd.../0xCaf8...). PoolVault/Entrypoint from .relayer-test-config.json; Keystore + ASPRegistry read on-chain via PoolVault.keystore()/aspRegistry() 2026-09-24; Entrypoint.poolVault() verified. deployBlock = api-dev.0xbow.io poolId 9 fromBlock (event-scan lower bound only). Entrypoint enables native BNB + USDT 0x55d398326f99059fF775485246999027B3197955 (18 DECIMALS); USDC not enabled. The dev ASP only approves deposits from 0x0967755AfA2016866D12EefB820705026842dCe8.",
+        "relaySwapsNote": "RelaySwaps deployed 2026-09-24 at 0xbe16948700c538D71599dB99Df604a2EA9a7e61a (CREATE2 salt keccak(\"privacy-pools-v2:RelaySwaps:test:v3\"), v2.0 HEAD incl. audit fixes #430, ROUTING_TYPEHASH 0xe11f9c01..., owner 0x0967, LiFi Diamond + Executor 0x2dfaDAB8 + ERC20Proxy 0x5741A7Ff approved, zap list empty; POOL()/ENTRYPOINT() verified on-chain). Previous test:v2 instance 0xBF65B029... (2026-09-15) is pre-RC-32 layout.",
+        "footgunWarning": "Entrypoint 0x88b0... here vs it-002 BSC Entrypoint 0xCaf8...; always verify per-chain via this chain's RPC."
+    }
+]

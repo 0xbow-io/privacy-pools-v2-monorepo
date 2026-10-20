@@ -1,0 +1,29 @@
+[
+  {
+    "chainId": 42161,
+    "chainName": "arbitrum",
+    "status": "deployed",
+    "address": "0xE9D64494021257849F96F8F00e59D42B67EF22C2",
+    "txHash": null,
+    "blockNumber": null,
+    "deployedAt": null,
+    "version": null,
+    "isTestDeployment": true,
+    "note": "Wired to MockPool — no ZK proof verification. Required because LiFi has no testnet deployment, so integration testing happens on an L2 mainnet instead. Not production; see packages/swaps/contracts/README.md."
+  },
+  {
+    "chainId": 10,
+    "chainName": "optimism",
+    "status": "not_deployed"
+  },
+  {
+    "chainId": 8453,
+    "chainName": "base",
+    "status": "not_deployed"
+  },
+  {
+    "chainId": 1,
+    "chainName": "ethereum",
+    "status": "not_deployed"
+  }
+]

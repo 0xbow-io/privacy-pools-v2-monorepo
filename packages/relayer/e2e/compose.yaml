@@ -1,0 +1,56 @@
+services:
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    entrypoint: ["anvil"]
+    command:
+      - "--host=0.0.0.0"
+      - "--fork-url=${ANVIL_FORK_URL:?Set ANVIL_FORK_URL to a sepolia RPC endpoint}"
+      - "--fork-block-number=${FORK_BLOCK_NUMBER:-10783261}"
+
+    expose:
+      - "8545"
+    healthcheck:
+      test: ["CMD", "cast", "block-number", "--rpc-url", "http://localhost:8545"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  relayer:
+    build:
+      context: ../../..
+      dockerfile: packages/relayer/relayer/Dockerfile.staging
+    expose:
+      - "3000"
+    environment:
+      - PORT=3000
+      - RPC_URL_EVM_11155111=http://anvil:8545
+      - CONFIG_PATH=/app/packages/relayer/relayer/relayer.config.json
+      - QUOTE_EXPIRATION_MS=600000
+    depends_on:
+      anvil:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/v1/ping').then(r => { if (!r.ok) process.exit(1) })"]
+      start_period: 15s   # max wait for startup
+      start_interval: 1s  # check every 1s during start_period
+      interval: 60s       # once healthy, check every minute
+      timeout: 3s
+      retries: 3
+
+  tests:
+    build:
+      context: ../../..
+      dockerfile: packages/relayer/e2e/Dockerfile
+    volumes:
+      - ../../circuits/build:/app/packages/relayer/e2e/circuit-artifacts:ro
+    environment:
+      - RELAYER_URL=http://relayer:3000
+      - CIRCUIT_ARTIFACTS_DIR=./circuit-artifacts
+      - RPC_URL=http://anvil:8545
+      - VITEST_TEST=${VITEST_TEST:-}
+      - VITEST_FILE=${VITEST_FILE:-}
+      - TEST_SUITE=${TEST_SUITE:-}
+    depends_on:
+      relayer:
+        condition: service_healthy

@@ -1,0 +1,13 @@
+{
+  "version": "2.2.3",
+  "protocol": "groth16",
+  "prime": "bn128",
+  "circuits": "./circuits.json",
+  "dirCircuits": "./circuits",
+  "dirInputs": "./inputs",
+  "dirBuild": "./build",
+  "dirPtau": "./ptau",
+  "optimization": 1,
+  "inspect": true,
+  "include": ["./node_modules", "./node_modules/circomlib/circuits"]
+}

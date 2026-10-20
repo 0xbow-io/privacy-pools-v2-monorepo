@@ -1,0 +1,49 @@
+{
+  "name": "@privacy-pools-v2/contracts",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Privacy Pools V2 Smart Contracts",
+  "license": "BUSL-1.1",
+  "scripts": {
+    "build": "forge build",
+    "build:optimized": "FOUNDRY_PROFILE=optimized forge build",
+    "clean": "rm -rf cache out broadcast",
+    "coverage": "FOUNDRY_PROFILE=coverage forge coverage --ir-minimum --report summary --report lcov",
+    "deploy:mainnet": "bash -c 'source .env && forge script Deploy --rpc-url mainnet --account $MAINNET_DEPLOYER_NAME --libraries poseidon-solidity/PoseidonT3.sol:PoseidonT3:0x3333333C0A88F9BE4fd23ed0536F9B6c427e3B93 --libraries poseidon-solidity/PoseidonT4.sol:PoseidonT4:0x4443338EF595F44e0121df4C21102677B142ECF0 --broadcast --verify --chain mainnet -vvvvv'",
+    "deploy:sepolia": "bash -c 'source .env && forge script Deploy --rpc-url sepolia --account $SEPOLIA_DEPLOYER_NAME --libraries poseidon-solidity/PoseidonT3.sol:PoseidonT3:0x3333333C0A88F9BE4fd23ed0536F9B6c427e3B93 --libraries poseidon-solidity/PoseidonT4.sol:PoseidonT4:0x4443338EF595F44e0121df4C21102677B142ECF0 --broadcast --verify --chain sepolia -vvvvv'",
+    "lint": "forge fmt --check && pnpm lint:sol",
+    "lint:bulloak": "find test/unit -name '*.tree' | xargs bulloak check",
+    "lint:fix": "forge fmt && pnpm lint:sol --fix && sort-package-json",
+    "lint:natspec": "lintspec",
+    "lint:sol": "solhint -w 0 'src/**/*.sol' 'script/**/*.sol' 'test/**/*.sol' --ignore-path .solhintignore",
+    "test": "forge test -vvv",
+    "test:bulloak:fix": "bulloak check --fix ./**/*.tree",
+    "test:bulloak:scaffold": "bulloak scaffold -wS ./**/*.tree",
+    "test:integration": "forge test --match-contract Integration --fuzz-runs 256 -vvv",
+    "test:integration:sepolia": "SEPOLIA_DEPLOYMENT_TESTS=true forge test --match-contract Integration --fuzz-runs 256 -vvv",
+    "test:invariant:campaign": "FOUNDRY_PROFILE=invariant-campaign forge test --match-contract Invariant -vv",
+    "test:invariant:ci": "FOUNDRY_PROFILE=invariant-ci forge test --match-contract Invariant -vv",
+    "test:invariant:execution-paths": "forge test --match-contract ExecutionPaths -vv",
+    "test:unit": "forge test --match-contract Unit -vvv",
+    "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 pnpm test:unit"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.4.0",
+    "@openzeppelin/contracts-upgradeable": "5.4.0",
+    "@zk-kit/lean-imt.sol": "2.0.1",
+    "poseidon-solidity": "0.0.5",
+    "solady": "0.1.26"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "19.3.0",
+    "@commitlint/config-conventional": "19.2.2",
+    "@safe-global/safe-contracts": "github:safe-global/safe-smart-account#b75e250",
+    "circom_tester": "0.0.19",
+    "forge-std": "github:foundry-rs/forge-std#v1.14.0",
+    "snarkjs": "0.7.5",
+    "solhint-community": "4.0.1",
+    "solhint-config-wonderland": "0.0.1",
+    "sort-package-json": "3.4.0",
+    "viem": "2.45.3"
+  }
+}

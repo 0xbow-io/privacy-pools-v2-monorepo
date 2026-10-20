@@ -1,0 +1,26 @@
+UnitPPYieldTokenFactory::createWrapper
+├── It deploys configures and seeds
+├── It emits WrapperCreated
+├── It multiple assets different offsets
+├── It reverts when not owner
+├── It reverts for foreign AToken
+├── It reverts when already deployed
+├── It reverts on zero seed
+├── It one wei seed
+├── It same AToken across two factories
+├── It wrapper is functional post seed
+├── It seeds dead shares from post supply balance
+├── It leaves no residual allowances
+└── It registers before seed transfer reentrancy
+
+UnitPPYieldTokenFactory::constructor
+└── It reverts on zero pool
+
+UnitPPYieldTokenFactory::allWrappers
+└── It reverts out of bounds
+
+UnitPPYieldTokenFactory::deadShares
+└── It neutralize inflation attack on offset zero asset
+
+UnitPPYieldTokenFactory::renounceOwnership
+└── It reverts when called

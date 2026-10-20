@@ -1,0 +1,78 @@
+[fmt]
+line_length = 120
+tab_width = 2
+bracket_spacing = false
+int_types = 'long'
+quote_style = 'single'
+number_underscore = 'thousands'
+multiline_func_header = 'params_first_multi'
+sort_imports = true
+ignore = ['src/contracts/verifiers/*.sol']
+
+# via-IR everywhere so build, test and `forge script` share one compiler pipeline
+# (deployed bytecode = tested bytecode).
+[profile.default]
+solc_version = '0.8.32'
+evm_version = 'prague'
+libs = ["node_modules", "lib"]
+optimizer_runs = 10_000
+gas_limit = "9223372036854775807"
+via_ir = true
+show_progress = true
+
+ffi = true
+
+[profile.ci]
+gas_limit = "9223372036854775807"
+fuzz.runs = 3_000
+
+# forge coverage silently ignores via-ir and sets it to false in order to
+# provide accurate sourcemaps. We can't set --ir-minimum here, therefore we'll
+# pass it in the npm script spec but --ir-minimum is not enough to make the
+# integration tests compile, so we're using this setting to ignore them at
+# compilation time (`--match-path` ignores them at runtime only)
+[profile.coverage]
+test = 'test/unit'
+
+[profile.docs]
+src = 'src/interfaces/'
+
+[fuzz]
+runs = 1_000
+
+# invariant-ci — PR / local smoke (few runs, shallow depth).
+#   ~3 runs × 15 depth × N invariants (for long fuzz: invariant-campaign).
+#   pnpm test:invariant:ci
+[profile.invariant-ci.invariant]
+runs = 3
+depth = 15
+show_metrics = true
+fail_on_revert = false
+corpus_dir = 'cache/corpus-ci'
+show_solidity = true
+
+# invariant-campaign — long fuzz on a server; stops at timeout or Ctrl+C.
+# Corpus in cache/corpus-campaign: re-run `:campaign` to continue where you left off.
+#   pnpm test:invariant:campaign
+[profile.invariant-campaign]
+show_progress = true
+
+[profile.invariant-campaign.invariant]
+timeout = 86400
+depth = 200
+show_metrics = true
+fail_on_revert = false
+corpus_dir = 'cache/corpus-campaign'
+show_solidity = true
+
+[rpc_endpoints]
+mainnet = "${MAINNET_RPC}"
+sepolia = "${SEPOLIA_RPC}"
+arbitrum = "${ARBITRUM_RPC}"
+base = "${BASE_RPC}"
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_API_KEY}" }
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+arbitrum = { key = "${ARBITRUM_ETHERSCAN_API_KEY}" }
+base = { key = "${BASE_ETHERSCAN_API_KEY}" }

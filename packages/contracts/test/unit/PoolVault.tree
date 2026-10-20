@@ -1,0 +1,221 @@
+UnitPoolVault::constructor
+├── When access router is invalid
+│   └── It should revert with Permissioned_InvalidAccessRouter
+└── When called
+    └── It should set the access router
+
+UnitPoolVault::Initialize
+├── When called on implementation
+│   └── It should revert with InvalidInitialization
+├── Given already initialized
+│   └── It should revert with InvalidInitialization
+└── Given not initialized
+    ├── It should initialize UUPSUpgradeable
+    ├── It should initialize Pausable
+    ├── It should initialize ReentrancyGuard
+    ├── It should initialize RootBuffer with ROOT_HISTORY_SIZE
+    ├── It should initialize TransactVerifierRouter with verifier configs
+    ├── It should configure verifiers
+    ├── It should set the ASP registry
+    ├── It should set the keystore
+    ├── It should set the ragequit verifier
+    ├── It should set the deposit verifier
+    ├── It should set the max state tree size
+    └── It should not be paused
+
+UnitPoolVault::Deposit
+├── When contract is paused
+│   └── It should revert with EnforcedPause
+├── When caller does not have the DEPOSITOR_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has the DEPOSITOR_ROLE
+    ├── When proof is not valid
+    │   └── It should revert with PoolVault_InvalidDepositProof
+    ├── When proof context does not match note data
+    │   └── It should revert with PoolVault_ProofContextMismatch
+    └── Given proof is valid
+        ├── When commitment was already used
+        │   └── It should revert with PoolVault_CommitmentAlreadyUsed
+        ├── Given state tree is at capacity
+        │   └── It should revert with PoolVault_StateTreeFull
+        ├── Given asset is native
+        │   ├── When msg_value does not equal proof_value
+        │   │   └── It should revert with PoolVault_InvalidValue
+        │   └── When msg_value equals proof_value
+        │       ├── It should record the commitment creation timestamp
+        │       ├── It should insert the output commitment + timestamp into the state tree
+        │       ├── It should update the commitment tree root
+        │       ├── It should emit a LeavesInserted event
+        │       ├── It should emit a Note event
+        │       └── It should emit a Deposited event
+        └── Given asset is not native
+            ├── When msg_value is not zero
+            │   └── It should revert with PoolVault_UnexpectedETHAmount
+            ├── When transferring proof_value assets to the pool fails by returning false
+            │   └── It should revert with SafeERC20FailedOperation
+            ├── When transferring proof_value assets to the pool fails by reverting
+            │   └── It should bubble up revert data
+            └── When transferring proof_value assets to the pool succeeds
+                ├── It should record the commitment creation timestamp
+                ├── It should insert the output commitment + timestamp into the state tree
+                ├── It should update the commitment tree root
+                ├── It should emit a LeavesInserted event
+                ├── It should emit a Deposited event
+                └── It should emit a Note event
+
+UnitPoolVault::Transact
+├── Given contract is paused
+│   └── It should revert with EnforcedPause
+├── When caller is not processor
+│   └── It should revert with PoolVault_InvalidProcessor
+├── When proof context does not match
+│   └── It should revert with PoolVault_ProofContextMismatch
+├── Given commitment state tree root is unknown
+│   └── It should revert with PoolVault_UnknownStateRoot
+├── Given keystore root is unknown
+│   └── It should revert with PoolVault_UnknownKeystoreRoot
+├── Given ASP root does not match latest
+│   └── It should revert with PoolVault_InvalidASPRoot
+├── When transact proof verification fails
+│   └── It should revert with PoolVault_InvalidTransactProof
+├── Given commitment already used
+│   └── It should revert with PoolVault_CommitmentAlreadyUsed
+├── Given nullifier already spent
+│   └── It should revert with PoolVault_NullifierAlreadySpent
+├── Given state tree batch would exceed capacity
+│   └── It should revert with PoolVault_StateTreeFull
+├── When withdrawnValue is zero
+│   ├── When tokenIdOut is not zero
+│   │   └── It should revert with PoolVault_TokenIdMustBeZeroOnInternalTransfer
+│   ├── It should append output commitments to commitments mapping
+│   ├── It should insert timestamped output commitments into state tree
+│   ├── It should insert timestamped nullifiers into state tree
+│   ├── It should update root buffer
+│   ├── It should mark all nullifiers as spent at block.timestamp
+│   ├── It should not transfer any tokens
+│   ├── It should call verifyProof with correct params
+│   ├── It should emit a Note event per output
+│   ├── It should emit a LeavesInserted event
+│   └── It should emit Transacted event
+└── When withdrawnValue is not zero
+    ├── When asset is native
+    │   ├── When transfer fails
+    │   │   └── It should revert with SafeTransferLib.ETHTransferFailed
+    │   └── When transfer succeeds
+    │       ├── It should append output commitments to commitments mapping
+    │       ├── It should insert timestamped output commitments into state tree
+    │       ├── It should insert timestamped nullifiers into state tree
+    │       ├── It should update root buffer
+    │       ├── It should mark all nullifiers as spent at block.timestamp
+    │       ├── It should transfer ETH to caller
+    │       ├── It should emit a Note event per output
+    │       ├── It should emit a LeavesInserted event
+    │       └── It should emit Transacted event
+    └── When transact asset is ERC20
+        ├── It should append output commitments to commitments mapping
+        ├── It should insert timestamped output commitments into state tree
+        ├── It should insert timestamped nullifiers into state tree
+        ├── It should update root buffer
+        ├── It should mark all nullifiers as spent at block.timestamp
+        ├── It should transfer ERC20 to caller
+        ├── It should emit a Note event per output
+        ├── It should emit a LeavesInserted event
+        └── It should emit Transacted event
+
+UnitPoolVault::Ragequit
+├── When caller does not match owner address from proof
+│   └── It should revert with PoolVault_InvalidOwnerAddress
+├── When proof value is zero
+│   └── It should revert with PoolVault_ZeroValueRagequit
+├── Given commitment does not exist in state tree
+│   └── It should revert with PoolVault_CommitmentNotFound
+├── Given nullifier already spent
+│   └── It should revert with PoolVault_NullifierAlreadySpent
+├── Given keystore root is unknown
+│   └── It should revert with PoolVault_UnknownKeystoreRoot
+├── When ragequit proof verification fails
+│   └── It should revert with PoolVault_InvalidRagequitProof
+├── Given state tree is at capacity
+│   └── It should revert with PoolVault_StateTreeFull
+└── When all checks pass
+    ├── When asset is native
+    │   ├── When ETH transfer fails
+    │   │   └── It should revert with SafeTransferLib.ETHTransferFailed
+    │   └── When ETH transfer succeeds
+    │       ├── It should be callable regardless of pause state
+    │       ├── It should mark nullifier as spent
+    │       ├── It should insert timestamped nullifier into state tree
+    │       ├── It should update root buffer
+    │       ├── It should transfer ETH to caller
+    │       └── It should emit Ragequit event
+    └── When ragequit asset is ERC20
+        ├── When transferring assets fails by returning false
+        │   └── It should revert with SafeERC20FailedOperation
+        ├── When transferring assets fails by reverting
+        │   └── It should bubble up revert data
+        └── When transferring assets succeeds
+            ├── It should be callable regardless of pause state
+            ├── It should mark nullifier as spent
+            ├── It should insert timestamped nullifier into state tree
+            ├── It should update root buffer
+            ├── It should transfer ERC20 to caller
+            └── It should emit Ragequit event
+
+UnitPoolVault::Pause
+├── Given caller does not have PAUSER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has PAUSER_ROLE
+    ├── It should pause the contract
+    └── It should emit Paused event
+
+UnitPoolVault::Unpause
+├── Given caller does not have UNPAUSER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UNPAUSER_ROLE
+    ├── It should unpause the contract
+    └── It should emit Unpaused event
+
+UnitPoolVault::UpgradeToAndCall
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    └── It should upgrade successfully
+
+UnitPoolVault::SetMaxStateTreeSize
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    ├── When new max size is less than or equal to current tree size
+    │   └── It should revert with PoolVault_InvalidMaxTreeSize
+    └── When new max size is greater than current tree size
+        ├── It should set the max state tree size
+        └── It should emit MaxStateTreeSizeUpdated event
+
+UnitPoolVault::SetAspRegistry
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    ├── It should set the ASP registry
+    └── It should emit AspRegistrySet event
+
+UnitPoolVault::SetKeystore
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    ├── It should set the keystore
+    └── It should emit KeystoreSet event
+
+UnitPoolVault::SetRagequitVerifier
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    ├── It should set the ragequit verifier
+    └── It should emit RagequitVerifierSet event
+
+UnitPoolVault::SetDepositVerifier
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    ├── It should set the deposit verifier
+    └── It should emit DepositVerifierSet event
+

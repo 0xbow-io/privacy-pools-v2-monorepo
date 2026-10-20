@@ -1,0 +1,68 @@
+FROM node:22-slim AS build
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
+
+WORKDIR /app
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/relayer/relayer/package.json packages/relayer/relayer/
+COPY packages/relayer/dust-rescue-prover/package.json packages/relayer/dust-rescue-prover/
+COPY packages/core-sdk/package.json packages/core-sdk/
+COPY packages/evm-sdk/package.json packages/evm-sdk/
+COPY packages/stellar-sdk/package.json packages/stellar-sdk/
+COPY packages/circuits/package.json packages/circuits/
+COPY packages/contracts/package.json packages/contracts/
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile --filter @privacy-pools-v2/relayer... --ignore-scripts
+
+COPY packages/core-sdk/ packages/core-sdk/
+RUN pnpm --filter @privacy-pools-v2/core-sdk build
+
+COPY packages/evm-sdk/ packages/evm-sdk/
+RUN pnpm --filter @privacy-pools-v2/evm-sdk build
+
+# main.js imports @privacy-pools-v2/stellar-sdk (packages/relayer/relayer/src/config/stellar/).
+# Nest's webpack build keeps node_modules packages external, so main.js require()s it at runtime —
+# it must ship in the final image like evm-sdk (see below).
+COPY packages/stellar-sdk/ packages/stellar-sdk/
+RUN pnpm --filter @privacy-pools-v2/stellar-sdk build
+
+COPY packages/relayer/dust-rescue-prover/ packages/relayer/dust-rescue-prover/
+RUN pnpm --filter @privacy-pools-v2/dust-rescue-prover build
+
+COPY packages/relayer/relayer/ packages/relayer/relayer/
+RUN pnpm --filter @privacy-pools-v2/relayer build
+
+FROM node:22-slim
+WORKDIR /app/packages/relayer/relayer
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/packages/core-sdk/package.json /app/packages/core-sdk/package.json
+COPY --from=build /app/packages/core-sdk/dist /app/packages/core-sdk/dist
+COPY --from=build /app/packages/evm-sdk/package.json /app/packages/evm-sdk/package.json
+COPY --from=build /app/packages/evm-sdk/dist /app/packages/evm-sdk/dist
+# main.js require()s @privacy-pools-v2/stellar-sdk at runtime (not bundled); without it the
+# relayer dies with MODULE_NOT_FOUND before listening on $PORT.
+COPY --from=build /app/packages/stellar-sdk/package.json /app/packages/stellar-sdk/package.json
+COPY --from=build /app/packages/stellar-sdk/dist /app/packages/stellar-sdk/dist
+COPY --from=build /app/packages/stellar-sdk/node_modules /app/packages/stellar-sdk/node_modules
+# The dust-rescue-prover consumes core-sdk/evm-sdk UNBUNDLED (unlike main.js, where webpack
+# inlines them), so their own runtime deps must resolve from their directories as well.
+COPY --from=build /app/packages/core-sdk/node_modules /app/packages/core-sdk/node_modules
+COPY --from=build /app/packages/evm-sdk/node_modules /app/packages/evm-sdk/node_modules
+COPY --from=build /app/packages/relayer/dust-rescue-prover/package.json /app/packages/relayer/dust-rescue-prover/package.json
+COPY --from=build /app/packages/relayer/dust-rescue-prover/dist /app/packages/relayer/dust-rescue-prover/dist
+# The prover's require('@privacy-pools-v2/evm-sdk') resolves from its own directory, so its
+# pnpm-symlinked node_modules must exist at runtime just like the relayer's own.
+COPY --from=build /app/packages/relayer/dust-rescue-prover/node_modules /app/packages/relayer/dust-rescue-prover/node_modules
+COPY --from=build /app/packages/relayer/relayer/node_modules ./node_modules
+COPY --from=build /app/packages/relayer/relayer/dist ./dist
+COPY --from=build /app/packages/relayer/relayer/relayer.config.example.json ./relayer.config.json
+
+ENV NODE_ENV=production
+# Webpack-bundled dist/main.js resolves the default path one level too high.
+ENV CONFIG_PATH=/app/packages/relayer/relayer/relayer.config.json
+# Privacy: bodies must never hit prod logs; info also suppresses debug noise (audit R-H4).
+ENV LOG_LEVEL=info
+EXPOSE 3000
+CMD ["node", "dist/main.js"]

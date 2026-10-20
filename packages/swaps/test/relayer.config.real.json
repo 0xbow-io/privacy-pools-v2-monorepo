@@ -1,0 +1,169 @@
+{
+  "chains": {
+    "evm": [
+      {
+        "id": 42161,
+        "name": "arbitrum",
+        "rpc_url": "https://arb1.arbitrum.io/rpc",
+        "entrypoint_contract": "0xad0b4d5212C126B334Af11Bf4547eF4C91Bfcf44",
+        "relay_contract": "0xc0e963c5d68f9d543ef51cd28656d943b033a55f",
+        "pool_vault_contract": "0x38B829a19B178fA5Defa1D379C2859bd3e5B3451",
+        "destination_calls_supported": true,
+        "relay_swaps_contract": "0xbf33ea44eed5331a97bb620e02f5910c2fa65c58",
+        "fee_receiver_address": "0x0000000000000000000000000000000000000001",
+        "signer_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "flat_fee_amount": "21000",
+        "native_currency": {
+          "name": "Ether",
+          "symbol": "ETH",
+          "decimals": 18
+        },
+        "supported_assets": [
+          {
+            "address": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            "ticker": "ETH",
+            "quoter": "Native",
+            "fee_bps": "10",
+            "decimals": 18
+          },
+          {
+            "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+            "ticker": "WETH",
+            "quoter": "Native",
+            "fee_bps": "10",
+            "decimals": 18
+          },
+          {
+            "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+            "ticker": "USDC",
+            "quoter": "Mock",
+            "decimals": 6
+          },
+          {
+            "address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+            "ticker": "USDT",
+            "quoter": "Mock",
+            "decimals": 6
+          }
+        ]
+      },
+      {
+        "id": 8453,
+        "name": "base",
+        "rpc_url": "https://mainnet.base.org",
+        "entrypoint_contract": "0xe7fd6c857639e3a7ccf3cd765b5816cfc95c0890",
+        "relay_contract": "0x6996f478df754dc65bb437dc2df4272afd647db2",
+        "pool_vault_contract": "0xe10c77548c31356805597fc2c8430ab5b6dfb56a",
+        "destination_calls_supported": true,
+        "relay_swaps_contract": "0xc59b82d4c00d181a5cfa0666170690047b32db98",
+        "fee_receiver_address": "0x0000000000000000000000000000000000000001",
+        "signer_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "flat_fee_amount": "21000",
+        "native_currency": {
+          "name": "Ether",
+          "symbol": "ETH",
+          "decimals": 18
+        },
+        "supported_assets": [
+          {
+            "address": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            "ticker": "ETH",
+            "quoter": "Native",
+            "fee_bps": "10",
+            "decimals": 18
+          },
+          {
+            "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "ticker": "USDC",
+            "quoter": "Cowswap",
+            "decimals": 6
+          },
+          {
+            "address": "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+            "ticker": "USDT",
+            "quoter": "Cowswap",
+            "decimals": 6
+          }
+        ]
+      },
+      {
+        "id": 56,
+        "name": "bsc",
+        "rpc_url": "https://bsc-dataseed.binance.org",
+        "entrypoint_contract": "0xCaf817D6D3A7cF78fe8d3a337bB42F934E6E846b",
+        "relay_contract": "0x7B02d1033B9958e918a9B73f0a9729a14D4b140E",
+        "pool_vault_contract": "0xe7fd6c857639E3a7cCf3Cd765B5816Cfc95C0890",
+        "destination_calls_supported": true,
+        "relay_swaps_contract": "0x9Ee097cF663a1816C4Fc2F12BDe259563F7265C4",
+        "fee_receiver_address": "0x0000000000000000000000000000000000000001",
+        "signer_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "flat_fee_amount": "21000",
+        "native_currency": {
+          "name": "BNB",
+          "symbol": "BNB",
+          "decimals": 18
+        },
+        "supported_assets": [
+          {
+            "address": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            "ticker": "BNB",
+            "quoter": "Native",
+            "fee_bps": "10",
+            "decimals": 18
+          },
+          {
+            "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+            "ticker": "USDC",
+            "quoter": "Mock",
+            "decimals": 18
+          },
+          {
+            "address": "0x55d398326f99059fF775485246999027B3197955",
+            "ticker": "USDT",
+            "quoter": "Mock",
+            "decimals": 18
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "name": "optimism",
+        "rpc_url": "https://mainnet.optimism.io",
+        "entrypoint_contract": "0xe7fd6c857639E3a7cCf3Cd765B5816Cfc95C0890",
+        "relay_contract": "0x6996F478DF754Dc65bB437dc2df4272AFD647dB2",
+        "pool_vault_contract": "0xE10c77548c31356805597Fc2c8430aB5b6Dfb56A",
+        "destination_calls_supported": true,
+        "relay_swaps_contract": "0x7430cc030d7eb8c83e76cd983996982c8c054204",
+        "fee_receiver_address": "0x0000000000000000000000000000000000000001",
+        "signer_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "flat_fee_amount": "21000",
+        "native_currency": {
+          "name": "Ether",
+          "symbol": "ETH",
+          "decimals": 18
+        },
+        "supported_assets": [
+          {
+            "address": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            "ticker": "ETH",
+            "quoter": "Native",
+            "fee_bps": "10",
+            "decimals": 18
+          },
+          {
+            "address": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+            "ticker": "USDC",
+            "quoter": "Mock",
+            "decimals": 6
+          },
+          {
+            "address": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+            "ticker": "USDT",
+            "quoter": "Mock",
+            "decimals": 6
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+    "chains": {
+        "evm": [
+            {
+                "id": 11155111,
+                "name": "sepolia",
+                "rpc_url": "http://localhost:8545",
+                "entrypoint_contract": "0x8445493038708311e55a526587d6ec4338377df0",
+                "relay_contract": "0xce551cec9dc9643dc5d7ff8f3015602ef38f2761",
+                "pool_vault_contract": "0xc131a029e8096fd427c2c2fd489b77c80b21574a",
+                "relay_swaps_contract": "0x0000000000000000000000000000000000000000",
+                "allowed_processors": [],
+                "fee_receiver_address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                "signer_private_key": "0x<RELAYER_SIGNER_PRIVATE_KEY>",
+                "flat_fee_amount": "21000",
+                "quote_expiration_ms": 60000,
+                "native_currency": {
+                    "name": "Ether",
+                    "symbol": "ETH",
+                    "decimals": 18
+                },
+                "supported_assets": [
+                    {
+                        "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "ticker": "ETH",
+                        "quoter": "Native",
+                        "fee_bps": "10",
+                        "decimals": 18
+                    },
+                    {
+                        "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                        "ticker": "USDC",
+                        "quoter": "Cowswap",
+                        "decimals": 6
+                    },
+                    {
+                        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                        "ticker": "USDT",
+                        "quoter": "Cowswap",
+                        "decimals": 6
+                    },
+                    {
+                        "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+                        "ticker": "DAI",
+                        "quoter": "Curve",
+                        "decimals": 18
+                    }
+                ]
+            }
+        ]
+    }
+}

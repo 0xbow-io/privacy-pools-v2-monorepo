@@ -1,0 +1,5 @@
+packages/circuits/build/**/*.wasm filter=lfs diff=lfs merge=lfs -text
+packages/circuits/build/**/*.zkey filter=lfs diff=lfs merge=lfs -text
+packages/circuits/build/**/*.r1cs filter=lfs diff=lfs merge=lfs -text
+packages/circuits/build/**/*.sym filter=lfs diff=lfs merge=lfs -text
+packages/circuits/build/**/groth16_verifier.sol filter=lfs diff=lfs merge=lfs -text

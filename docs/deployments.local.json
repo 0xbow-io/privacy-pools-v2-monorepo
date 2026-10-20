@@ -1,0 +1,34 @@
+{
+  "_note": "Local anvil Sepolia FORK (ephemeral). Full stack + yield deployed from the CONSOLIDATED monorepo (base Deploy.s.sol + DeployYieldFork.s.sol). Valid only while the current anvil runs. Deployer is the standard anvil/hardhat account #0; its private key is well-known and derivable from the default test mnemonic — intentionally NOT stored here (secret-scanner hygiene).",
+  "chainId": 11155111,
+  "minFromBlock": 11190844,
+  "rpc": "http://localhost:8545",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "core": {
+    "accessRouter": "0xE314711d23c6CFA351D948989Db76ED4Fa4a2687",
+    "keystore": "0xf241ca2F422EACA1c784ADAB85551CFECdeE7B7a",
+    "aspRegistry": "0x21CC90436372D1B31AeE3c38c4B147BA98540509",
+    "poolVault": "0xA5a205FcD0f99f5FD9b61D2abbcD5dAc4f538e48",
+    "entrypoint": "0xb0bcaB4613F5c624f418c895c94711428A4935b1",
+    "privacyPoolRelay": "0xd9C489D3d825B5629097dFC5C090D206069c3dD0",
+    "canonGuardSafe": "0x2DDB00bE478B5A68669464A98b5725030684a3a3",
+    "entrypointManager": "0x295C28a0fAd0D79Ed72268d17139Fc367eDf2049"
+  },
+  "yield": {
+    "ppUSDC": "0x31D7D7D993fd005d6271F91d41A5A8A09326fB21",
+    "ppUSDCDecimals": 18,
+    "zap": "0x4E3E40698d2B403376578c4593c3f87007d13001",
+    "ppRouter": "0xE1742Ed9858203faB049E61d6FD716820dbBe47B"
+  },
+  "poseidonLibs": { "PoseidonT3": "0x3333333C0A88F9BE4fd23ed0536F9B6c427e3B93", "PoseidonT4": "0x4443338EF595F44e0121df4C21102677B142ECF0" },
+  "aaveSepolia": {
+    "pool": "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951",
+    "poolConfigurator": "0x7Ee60D184C24Ef7AfC1Ec7Be59A0f448A0abd138",
+    "aclManager": "0x7F2bE3b178deeFF716CD6Ff03Ef79A1dFf360ddD",
+    "aclAdmin": "0xfA0e305E0f46AB04f00ae6b5f4560d61a2183E00",
+    "faucet": "0xC959483DBa39aa9E78757139af0e9a2EDEb3f42D",
+    "usdc": "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8",
+    "aUSDC": "0x16dA4541aD1807f4443d92D26044C1147406EB80",
+    "rewardsController": "0x4DA5c4da71C5a167171cC839487536d86e083483"
+  }
+}

@@ -1,0 +1,552 @@
+{
+  "deposit": {
+    "file": "deposit",
+    "template": "Deposit",
+    "pubs": [
+      "tokenId",
+      "value",
+      "context"
+    ],
+    "version": "2.2.3"
+  },
+  "transact_1x1": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      1,
+      1,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_1x2": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      1,
+      2,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_1x3": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      1,
+      3,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_1x4": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      1,
+      4,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_1x5": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      1,
+      5,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_2x1": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      2,
+      1,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_2x2": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      2,
+      2,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_2x3": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      2,
+      3,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_2x4": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      2,
+      4,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_2x5": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      2,
+      5,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_3x1": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      3,
+      1,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_3x2": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      3,
+      2,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_3x3": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      3,
+      3,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_3x4": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      3,
+      4,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_3x5": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      3,
+      5,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_4x1": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      4,
+      1,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_4x2": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      4,
+      2,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_4x3": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      4,
+      3,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_4x4": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      4,
+      4,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_4x5": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      4,
+      5,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_5x1": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      5,
+      1,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_5x2": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      5,
+      2,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_5x3": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      5,
+      3,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_5x4": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      5,
+      4,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "transact_5x5": {
+    "file": "transact",
+    "template": "Transact",
+    "params": [
+      5,
+      5,
+      22,
+      18,
+      18
+    ],
+    "pubs": [
+      "stateRoot",
+      "keystoreRoot",
+      "associationSetRoot",
+      "amountOut",
+      "tokenIdOut",
+      "context"
+    ],
+    "dir": "main/transact",
+    "version": "2.2.3"
+  },
+  "ragequit": {
+    "file": "ragequit",
+    "template": "Ragequit",
+    "params": [
+      18
+    ],
+    "pubs": [
+      "keystoreRoot",
+      "ownerAddress",
+      "value",
+      "tokenId",
+      "label"
+    ],
+    "version": "2.2.3"
+  }
+}

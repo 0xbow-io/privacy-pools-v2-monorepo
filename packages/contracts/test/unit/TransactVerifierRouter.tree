@@ -1,0 +1,36 @@
+UnitTransactVerifierRouter::initializeTransactVerifierRouter
+├── When called on the implementation
+│   └── It should revert with InvalidInitialization
+├── Given already initialized
+│   └── It should revert with InvalidInitialization
+└── Given not initialized
+    └── When called with valid verifier configs
+        ├── It should configure all verifiers
+        └── It should emit VerifierConfigured for each
+
+UnitTransactVerifierRouter::setVerifier
+├── Given caller does not have UPGRADER role
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER role
+    ├── When spent nullifier count is zero
+    │   └── It should revert with TransactVerifierRouter_InvalidZeroParameter
+    ├── When new commitment count is zero
+    │   └── It should revert with TransactVerifierRouter_InvalidZeroParameter
+    └── When selector value is correct
+        ├── It should populate the keccak(N,M) key
+        ├── It should NOT populate the keccak(M,N) key
+        ├── It should save the contract address
+        ├── It should save the selector to be called
+        └── It should emit the VerifierConfigured event
+
+UnitTransactVerifierRouter::verifyProof
+├── When called with a non-existing verifier
+│   └── It should revert with TransactVerifierRouter_UnsupportedCircuitConfiguration
+└── When called with an existing verifier
+    ├── When verifier reverts
+    │   └── It should revert with TransactVerifierRouter_VerifierCallReverted
+    ├── When verifier returns anything other than a boolean
+    │   └── It should revert with a Panic in abi.decode
+    └── When verifier returns a boolean
+        ├── It should call the verifier contract
+        └── It should forward the result

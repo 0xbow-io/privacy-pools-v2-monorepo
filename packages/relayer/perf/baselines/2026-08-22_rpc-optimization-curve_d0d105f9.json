@@ -1,0 +1,130 @@
+{
+    "date": "2026-08-22T20:54:58.907Z",
+    "label": "rpc-optimization-curve",
+    "gitCommit": "d0d105f9",
+    "branch": "fat/test/performance",
+    "node": "v22.20.0",
+    "scenarios": {
+        "curve-fault-hang": {
+            "scenario": "curve-fault-hang",
+            "recordedAt": "2026-08-22T20:54:25.200Z",
+            "responseMs": 5169,
+            "status": 400,
+            "budgetMs": 9000
+        },
+        "curve-fault-recovery": {
+            "scenario": "curve-fault-recovery",
+            "recordedAt": "2026-08-22T20:54:25.502Z",
+            "responseMs": 296,
+            "status": 201
+        },
+        "curve-transfer-usdt-repeat": {
+            "scenario": "curve-transfer-usdt-repeat",
+            "recordedAt": "2026-08-22T20:54:20.024Z",
+            "rpcCalls": {
+                "eth_call": 2,
+                "eth_blockNumber": 1
+            },
+            "totalRpcCalls": 3
+        },
+        "curve-transfer-usdt-warm": {
+            "scenario": "curve-transfer-usdt-warm",
+            "recordedAt": "2026-08-22T20:54:19.761Z",
+            "rpcCalls": {
+                "eth_call": 2,
+                "eth_blockNumber": 1
+            },
+            "totalRpcCalls": 3,
+            "httpRequests": 3,
+            "responseMs": 311
+        },
+        "fault-error-503": {
+            "scenario": "fault-error-503",
+            "recordedAt": "2026-08-22T20:54:47.151Z",
+            "responseMs": 170,
+            "status": 500,
+            "budgetMs": 9000
+        },
+        "fault-hang": {
+            "scenario": "fault-hang",
+            "recordedAt": "2026-08-22T20:54:46.965Z",
+            "responseMs": 5173,
+            "status": 500,
+            "budgetMs": 9000
+        },
+        "fault-recovery": {
+            "scenario": "fault-recovery",
+            "recordedAt": "2026-08-22T20:54:47.178Z",
+            "responseMs": 21,
+            "status": 201
+        },
+        "rpc-send-eth-warm": {
+            "scenario": "rpc-send-eth-warm",
+            "recordedAt": "2026-08-22T20:54:47.519Z",
+            "rpcCalls": {},
+            "totalRpcCalls": 0
+        },
+        "rpc-send-usdc-cold-asset": {
+            "scenario": "rpc-send-usdc-cold-asset",
+            "recordedAt": "2026-08-22T20:54:47.542Z",
+            "rpcCalls": {
+                "eth_call": 1
+            },
+            "totalRpcCalls": 1
+        },
+        "rpc-send-usdc-warm": {
+            "scenario": "rpc-send-usdc-warm",
+            "recordedAt": "2026-08-22T20:54:47.551Z",
+            "rpcCalls": {},
+            "totalRpcCalls": 0
+        },
+        "rpc-transfer-eth-cold": {
+            "scenario": "rpc-transfer-eth-cold",
+            "recordedAt": "2026-08-22T20:54:47.496Z",
+            "rpcCalls": {},
+            "totalRpcCalls": 0,
+            "httpRequests": 0,
+            "batchedHttpRequests": 0
+        },
+        "rpc-transfer-eth-warm": {
+            "scenario": "rpc-transfer-eth-warm",
+            "recordedAt": "2026-08-22T20:54:47.506Z",
+            "rpcCalls": {},
+            "totalRpcCalls": 0
+        }
+    },
+    "bench": {
+        "kind": "latency-bench",
+        "date": "2026-08-22T20:36:54.143Z",
+        "config": {
+            "n": 15,
+            "concurrency": 1,
+            "endpoint": "transfer",
+            "relayerUrl": "http://localhost:3210"
+        },
+        "cold": {
+            "ms": 87.3,
+            "status": 201
+        },
+        "warm": {
+            "requests": 15,
+            "ok": 15,
+            "throttled": 0,
+            "failed": 0,
+            "latencyMs": {
+                "min": 3.9,
+                "p50": 6.8,
+                "p90": 9.1,
+                "p95": 9.1,
+                "max": 10,
+                "mean": 6.6
+            }
+        },
+        "rpc": {
+            "totalRpcCalls": 0,
+            "rpcCalls": {},
+            "httpRequests": 0,
+            "rpcCallsPerQuote": 0
+        }
+    }
+}

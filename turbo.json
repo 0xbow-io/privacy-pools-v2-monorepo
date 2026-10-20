@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "out/**", "build/**", "cache/**", "typechain-types/**", "ptau/**"],
+      "inputs": ["src/**", "circuits/**", "package.json", "tsconfig.json", "foundry.toml", "circomkit.json"]
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "test/**", "circuits/**"]
+    },
+    "test:unit": {
+      "dependsOn": ["build"]
+    },
+    "test:integration": {
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "inputs": ["src/**", "test/**", "*.json"]
+    },
+    "lint:fix": {
+      "inputs": ["src/**", "test/**", "*.json"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig.json"]
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

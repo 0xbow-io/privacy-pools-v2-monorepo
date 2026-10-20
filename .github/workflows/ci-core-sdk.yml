@@ -1,0 +1,83 @@
+name: CI — Core SDK
+
+on:
+  push:
+    branches: [main, dev, feat/contracts]
+    paths:
+      - 'packages/core-sdk/**'
+  pull_request:
+    paths:
+      - 'packages/core-sdk/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: Big_Guy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @privacy-pools-v2/core-sdk lint
+
+  build:
+    name: Build & Test
+    runs-on: Big_Guy
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `--only` builds just the listed packages, ordered by the dependency graph. Without it, turbo's
+      # `^build` also builds circuits (circom) and contracts (forge), which these runners don't install
+      # and no SDK build needs.
+      - name: Build core-sdk
+        run: pnpm turbo run build --filter=@privacy-pools-v2/core-sdk --only
+
+      - name: Run core-sdk tests
+        run: pnpm --filter @privacy-pools-v2/core-sdk test

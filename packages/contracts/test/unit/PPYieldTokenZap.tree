@@ -1,0 +1,20 @@
+UnitPPYieldTokenZap::constructor
+├── It reverts when vault is zero
+├── It reverts when pool is zero
+└── It reverts when underlying is zero
+
+UnitPPYieldTokenZap::depositUnderlying
+├── It reverts on zero amount
+└── It credits receiver not caller
+
+UnitPPYieldTokenZap::redeemToUnderlying
+├── It reverts on zero shares
+└── It sends underlying to receiver not caller
+
+UnitPPYieldTokenZap::buyFixedYieldToken
+├── It mints exact shares to receiver
+├── It reverts when max underlying too low
+└── It reverts when shares is zero
+
+UnitPPYieldTokenZap::quoteBuy
+└── It equals preview mint plus rounding buffer

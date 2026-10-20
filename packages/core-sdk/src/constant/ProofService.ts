@@ -1,0 +1,6 @@
+const MIN_INPUTS = 1;
+const MAX_INPUTS = 5;
+const MIN_OUTPUTS = 1;
+const MAX_OUTPUTS = 5;
+
+export { MIN_INPUTS, MAX_INPUTS, MIN_OUTPUTS, MAX_OUTPUTS };

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Privacy Pools V2 · Deposit</title>
+  <style>
+    body { font-family: monospace; padding: 1rem; background: #0d0d0d; color: #e0e0e0; max-width: 640px; }
+    h1 { font-size: 1rem; color: #888; margin-bottom: 1rem; }
+    pre { background: #1a1a1a; border: 1px solid #333; padding: 1rem; white-space: pre-wrap; word-break: break-all; min-height: 4rem; max-height: 60vh; overflow-y: auto; }
+    button { margin: 0.25rem 0.25rem 0.5rem 0; padding: 0.5rem 1rem; font-family: monospace; cursor: pointer; background: #222; color: #e0e0e0; border: 1px solid #444; font-size: 0.9rem; }
+    button:hover { background: #333; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    input { font-family: monospace; padding: 0.4rem; background: #1a1a1a; color: #e0e0e0; border: 1px solid #444; width: 120px; }
+    label { display: block; margin: 0.5rem 0 0.25rem; color: #888; }
+    .row { display: flex; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem; }
+    #wallet-status { color: #666; margin-bottom: 1rem; }
+    #wallet-status.connected { color: #4a4; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Pools V2 · Deposit with Browser Wallet</h1>
+
+  <p id="wallet-status">Not connected</p>
+
+  <button id="btn-connect">Connect Wallet</button>
+
+  <div class="row">
+    <div>
+      <label for="amount">Amount (ETH)</label>
+      <input id="amount" type="text" value="0.01" />
+    </div>
+    <button id="btn-deposit" disabled>Deposit</button>
+  </div>
+
+  <pre id="output">Connect your wallet to start.</pre>
+
+  <script type="module" src="/src/deposit.ts"></script>
+</body>
+</html>

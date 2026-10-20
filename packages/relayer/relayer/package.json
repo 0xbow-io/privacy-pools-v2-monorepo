@@ -1,0 +1,102 @@
+{
+    "name": "@privacy-pools-v2/relayer",
+    "version": "1.0.1",
+    "description": "",
+    "author": "",
+    "private": true,
+    "license": "GPL-3.0-or-later",
+    "scripts": {
+        "build": "nest build",
+        "start": "node dist/main",
+        "start:dev": "nest start --watch",
+        "start:debug": "nest start --debug --watch",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:cov": "jest --coverage",
+        "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+        "test:e2e": "jest --config ./test/jest-e2e.json",
+        "lint": "eslint -c ./eslint.config.mjs",
+        "lint:fix": "eslint --fix -c ./eslint.config.mjs"
+    },
+    "dependencies": {
+        "@cowprotocol/cow-sdk": "5.10.3",
+        "@cowprotocol/sdk-viem-adapter": "0.1.3",
+        "@google-cloud/pubsub": "^4.11.0",
+        "@privacy-pools-v2/dust-rescue-prover": "workspace:*",
+        "@nestjs/common": "11.1.18",
+        "@nestjs/core": "11.1.18",
+        "@nestjs/platform-express": "11.1.18",
+        "@nestjs/swagger": "11.2.7",
+        "@nestjs/throttler": "6.5.0",
+        "@privacy-pools-v2/core-sdk": "workspace:*",
+        "@privacy-pools-v2/evm-sdk": "workspace:*",
+        "@privacy-pools-v2/stellar-sdk": "workspace:*",
+        "@stellar/stellar-sdk": "^14.6.1",
+        "@uniswap/v3-sdk": "^3.31.1",
+        "ethers": "5.8.0",
+        "express": "5.2.1",
+        "nanoid": "3.3.11",
+        "nest-winston": "1.10.2",
+        "nestjs-cls": "6.2.0",
+        "nestjs-zod": "3.0.0",
+        "reflect-metadata": "0.2.2",
+        "rxjs": "7.8.2",
+        "starknet": "9.4.2",
+        "viem": "catalog:shared",
+        "winston": "3.19.0",
+        "zod": "3.24.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "catalog:lint",
+        "@nestjs/cli": "11.0.19",
+        "@nestjs/schematics": "11.0.10",
+        "@nestjs/testing": "11.1.18",
+        "@tsconfig/node22": "catalog:shared",
+        "@types/express": "5.0.6",
+        "@types/jest": "30.0.0",
+        "@types/node": "catalog:shared",
+        "@types/supertest": "6.0.3",
+        "dotenv": "17.4.1",
+        "eslint": "catalog:lint",
+        "eslint-config-prettier": "catalog:lint",
+        "globals": "catalog:lint",
+        "jest": "30.3.0",
+        "jest-ctrf-json-reporter": "0.0.10",
+        "jest-mock-extended": "4.0.0",
+        "source-map-support": "0.5.21",
+        "supertest": "7.2.2",
+        "ts-jest": "29.4.9",
+        "ts-loader": "9.5.7",
+        "ts-node": "10.9.2",
+        "tsconfig-paths": "4.2.0",
+        "typescript": "5.9.3",
+        "typescript-eslint": "catalog:lint"
+    },
+    "jest": {
+        "moduleFileExtensions": [
+            "js",
+            "json",
+            "ts"
+        ],
+        "reporters": [
+            "default",
+            [
+                "jest-ctrf-json-reporter",
+                {}
+            ]
+        ],
+        "rootDir": "src",
+        "testRegex": ".*\\.spec\\.ts$",
+        "transform": {
+            "^.+\\.(t|j)s$": "ts-jest"
+        },
+        "transformIgnorePatterns": [
+            "/node_modules/\\.pnpm/(?!(@noble\\+|@scure\\+))"
+        ],
+        "collectCoverageFrom": [
+            "**/*.(t|j)s"
+        ],
+        "coverageDirectory": "../coverage",
+        "testEnvironment": "node"
+    }
+}

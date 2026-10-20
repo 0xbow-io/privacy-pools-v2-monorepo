@@ -1,0 +1,28 @@
+name: Deploy Alert Dispatcher (prod)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [v2.0]
+    paths:
+      - 'packages/relayer/alert-dispatcher/**'
+
+jobs:
+  deploy:
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/alert-dispatcher-gcp-deploy.yml
+    with:
+      ref: ${{ github.sha }}   # required — alert-dispatcher-gcp-deploy.yml defaults to 'v2.0' otherwise
+    secrets:
+      WIF_PROVIDER_ID: ${{ secrets.WIF_PROVIDER_ID }}
+      SERVICE_ACCOUNT_EMAIL: ${{ secrets.SERVICE_ACCOUNT_EMAIL }}
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      ARTIFACT_REPO: ${{ secrets.ARTIFACT_REPO }}
+      # Dedicated secrets, NOT the shared relayer SERVICE_NAME/IMAGE_NAME — those
+      # collided with relayer-v2-prod via `secrets: inherit` and clobbered it in prod.
+      IMAGE_NAME: ${{ secrets.ALERT_DISPATCHER_IMAGE_NAME }}
+      SERVICE_NAME: ${{ secrets.ALERT_DISPATCHER_SERVICE_NAME }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

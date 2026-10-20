@@ -1,0 +1,11 @@
+# Real, secret-bearing local config/notes for deploying this service — never committed.
+# The checked-in dust-rescue-service.config.example.json is the only config file that
+# belongs in git; anything with real rpcUrl/aspUrl values goes here instead.
+.asp_data
+.dust-rescue-service.config.json
+
+# Cloud Run Admin API v2 request body used for the manual REST deploy (no gcloud run
+# deploy / CI wrapper exists yet — see dust_Collector_deploy_handoff.md at the repo's
+# sibling directory). Not secret-bearing itself, just project-specific deploy metadata;
+# kept local rather than checked in since it's a scratch artifact, not a proper deploy script.
+.dust-collector-testing-service.json

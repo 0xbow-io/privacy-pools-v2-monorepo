@@ -1,0 +1,62 @@
+UnitASPRegistry::constructor
+├── When access router is invalid
+│   └── It should revert with Permissioned_InvalidAccessRouter
+└── When called
+    └── it sets the access router
+
+UnitASPRegistry::initialize
+├── When called on the implementation
+│   └── It should revert with InvalidInitialization, since the constructor disabled initializers
+├── When called a second time
+│   └── It should revert with InvalidInitialization
+└── When called for the first time
+    └── It should keep the address router from the verifier
+
+UnitASPRegistry::_authorizeUpgrade
+├── When caller does not have UPGRADER_ROLE in accessRouter
+│   ├── It should query access router for the upgrader role
+│   └── It should revert with InvalidUpgrader
+└── When caller has UPGRADER_ROLE in access router
+    ├── It should query access router for the upgrader role
+    └── It should succeed
+
+UnitASPRegistry::latestASPRoot
+├── When associationSets is empty
+│   └── It should revert with ASPRegistry_EmptyAssociationSet
+├── When association set has one element
+│   └── It should return said element
+└── When association set has many elements
+    └── It should return the last one
+
+UnitASPRegistry::latestIPFSCID
+├── When associationSets is empty
+│   └── It should revert with ASPRegistry_EmptyAssociationSet
+├── When association set has one element
+│   └── It should return said element
+└── When association set has many elements
+    └── It should return the last one
+
+UnitASPRegistry::associationSets
+├── When called on a non-existant index
+│   └── It should revert with an out of bounds panic
+└── When called on a valid index
+    └── It should return the set value
+
+UnitASPRegistry::updateASPRoot
+├── When caller does not have POSTMAN_ROLE
+│   └── It should revert with UnauthorizedPostmen
+├── When root is zero
+│   └── It should revert with ASPRegistry_EmptyASPRoot
+├── When root is out of field
+│   └── It should revert with ASPRegistry_RootOutOfField
+├── When ipfsCID is zero
+│   └── It should revert with ASPRegistry_EmptyIPFSCID
+└── When preconditions are met
+    ├── It queries the accessRouter for the role of the caller
+    ├── It inserts the root and ipfsCID into the associationSets array
+    └── It emits an ASPRootUpdated event
+
+UnitASPRegistry::registerLabel
+└── When called
+    └── It should emit a LabelRegistered event
+

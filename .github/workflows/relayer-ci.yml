@@ -1,0 +1,71 @@
+name: Relayer CI
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'packages/relayer/**'
+  pull_request:
+    paths:
+      - 'packages/relayer/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint & Build
+    runs-on: Big_Guy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @privacy-pools-v2/relayer lint
+
+      # The relayer imports @privacy-pools-v2/core-sdk/batch-fee, @privacy-pools-v2/evm-sdk, and
+      # @privacy-pools-v2/stellar-sdk, which resolve to their compiled dist via each package's
+      # `exports` map. `pnpm install` only creates the workspace symlinks, not the dist, so all
+      # three must be built before the relayer — turbo orders core-sdk before evm-sdk/stellar-sdk.
+      # `--only` keeps turbo from also building circuits (circom) and contracts (forge), which this
+      # runner doesn't install and no SDK build needs.
+      - name: Build SDK dependencies
+        run: pnpm turbo run build --filter=@privacy-pools-v2/core-sdk --filter=@privacy-pools-v2/evm-sdk --filter=@privacy-pools-v2/stellar-sdk --only
+
+      # Same reason as the SDK packages: the relayer imports @privacy-pools-v2/dust-rescue-prover,
+      # whose types/exports resolve to its compiled dist. It depends on core-sdk/evm-sdk, so it
+      # builds after them.
+      - name: Build dust-rescue-prover dependency
+        run: pnpm --filter @privacy-pools-v2/dust-rescue-prover build
+
+      - name: Build
+        run: pnpm --filter @privacy-pools-v2/relayer build
+
+      # alert-dispatcher (relayer alerts -> Telegram) has no workspace dependencies, so it needs none
+      # of the builds above.
+      - name: Lint alert-dispatcher
+        run: pnpm --filter @privacy-pools-v2/alert-dispatcher lint
+
+      - name: Build alert-dispatcher
+        run: pnpm --filter @privacy-pools-v2/alert-dispatcher build
+
+      - name: Test alert-dispatcher
+        run: pnpm --filter @privacy-pools-v2/alert-dispatcher test

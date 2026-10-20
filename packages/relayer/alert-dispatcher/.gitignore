@@ -1,0 +1,9 @@
+dist
+node_modules
+coverage
+# Local scratch env files (the Telegram bot token must never be committed).
+.env
+.env.*
+
+# jest-ctrf-json-reporter output (also ignored by packages/relayer/.gitignore; explicit so this package stands alone)
+ctrf/

@@ -1,0 +1,20 @@
+[profile.default]
+src = "src"
+out = "out"
+test = "test"
+libs = ["../node_modules"]
+allow_paths = ["../node_modules", "../../../node_modules"]
+fs_permissions = [
+    { access = "read", path = "../test/fixtures" },
+    { access = "read", path = "out" },
+    { access = "read-write", path = "src/generated" },
+]
+solc = "0.8.32"
+ast = true
+remappings = [
+    "forge-std/=../node_modules/forge-std/src/",
+    "solady/=../node_modules/solady/src/",
+    "verifiers/=../../circuits/build/",
+    "main_contracts_libs/=../../contracts/src/libraries/",
+    "interfaces/=../../contracts/src/interfaces/"
+]

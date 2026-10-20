@@ -1,0 +1,61 @@
+%% Full swap-and-deposit flow — every participant. Wallet-submitted, NO relayer:
+%% depositor's address is already public, so nothing to hide at submission time.
+%% Phases: prepare (proof + quote) → approval → atomic swap+deposit tx → settlement.
+%% Render: mmdc -i swap-deposit.mmd -o swap-deposit.svg  (or any mermaid viewer)
+
+sequenceDiagram
+    autonumber
+    actor User as User / Integrator<br/>(wallet)
+    participant SD as SDK<br/>PoolSessionSwapDeposit
+    participant Deposit as SDK<br/>PoolSessionDeposit
+    participant EPI as SDK<br/>EntrypointInteractor (RPC)
+    participant LiFiAPI as LiFi API<br/>(off-chain quotes)
+    participant Token as Input token<br/>(ERC-20)
+    participant Diamond as LiFi Diamond<br/>(on-chain executor)
+    participant EP as Entrypoint<br/>contract
+    participant Pool as PrivacyPool /<br/>PoolVault
+
+    %% ============ PHASE 1 — prepare ============
+    rect rgb(40, 40, 60)
+        Note over User,LiFiAPI: Phase 1 — prepareSwapAndDeposit()
+        User->>SD: prepareSwapAndDeposit(fromToken, toToken, depositAmount)
+        SD->>Deposit: prepareDeposit(depositAmount, toToken)
+        Note over Deposit: deposit ZK proof (~30-60s) —<br/>locks EXACT depositAmount, toToken, pool
+        Deposit-->>SD: depositResult { callData, to: Entrypoint, pendingNote }
+        SD->>LiFiAPI: getSwapAndDepositQuote(amountType: "to" — fixed output,<br/>contractCalls: [Entrypoint.deposit(depositProof)])
+        Note over LiFiAPI: fixed-output quote: deposit proof locks the<br/>exact amount, so the swap must produce exactly it
+        LiFiAPI-->>SD: transactionData (swap + deposit embedded),<br/>transactionTo, approvalAddress, fromAmount
+        Note over SD: build ERC-20 approve tx for the INPUT token →<br/>LiFi approvalAddress (NOT the entrypoint — LiFi<br/>pulls the input token for the swap)
+        SD-->>User: PrepareSwapAndDepositResult { transactionData,<br/>transactionTo, approvalAddress, approvalTx, pendingNote }
+    end
+
+    %% ============ PHASE 2 — approval ============
+    rect rgb(40, 60, 40)
+        Note over User,Token: Phase 2 — executeSwapAndDeposit(): input token approval
+        User->>SD: executeSwapAndDeposit(result)
+        SD->>EPI: submitTransaction(approvalTx)
+        EPI->>Token: approve(approvalAddress, fromAmount)
+        SD->>SD: waitForTransactionReceipt(approvalHash)
+        Note over SD: approval reverted → abort<br/>(PoolSessionSwapDepositBaseError)
+    end
+
+    %% ============ PHASE 3 — atomic swap + deposit ============
+    rect rgb(40, 60, 60)
+        Note over SD,Pool: Phase 3 — single atomic tx (wallet-submitted)
+        SD->>EPI: submitTransaction({ to: transactionTo,<br/>data: transactionData, value: msgValue })
+        EPI->>Diamond: swap + contractCalls tx
+        Diamond->>Token: transferFrom(user, fromAmount)
+        Diamond->>Diamond: swap token X → token Y
+        Diamond->>EP: deposit(depositProof, noteData) with token Y
+        Note over EP: verify deposit proof, charge vettingFeeBPS,<br/>reverts if swap output < depositAmount + fee —<br/>whole tx reverts atomically (slippage protection)
+        EP->>Pool: insert new note commitment
+        Diamond-->>EPI: tx success
+    end
+
+    %% ============ PHASE 4 — settlement ============
+    rect rgb(50, 40, 60)
+        Note over SD,User: Phase 4 — settlement
+        SD->>SD: waitForTransactionReceipt(txHash)
+        Note over SD: receipt OK + pendingNote.isOwned →<br/>persistDepositNote: verify commitment in logs,<br/>NoteManager.addNote(pendingNote → ACTIVE)
+        SD-->>User: TxReceipt
+    end

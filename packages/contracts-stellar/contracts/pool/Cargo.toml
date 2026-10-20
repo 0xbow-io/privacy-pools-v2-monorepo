@@ -1,0 +1,26 @@
+[package]
+name = "pool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+contract-types = { workspace = true }
+soroban-v2-utils = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+keystore = { path = "../keystore" }
+asp-registry = { path = "../asp-registry" }
+# Real-proof fixtures: transact_1x1_internal.json drives pool.transact end to
+# end, which is the only way to reach the post-verification path in a unit test.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1" 
+
+[lints]
+workspace = true

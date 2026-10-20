@@ -1,0 +1,739 @@
+{
+  "description": "Points v1 accrual test vectors. One vector = one note in one epoch, i.e. one claim. All integers are decimal strings; times are unix seconds.",
+  "formula": {
+    "pointsWei": "floor(value * rate * cohortBps * cliffOverlap / (rateScale * 10000))",
+    "cliffOverlap": "max(0, min(end, snapshotTime) - max(createdAt + cliffSeconds, windowStart)), end = spentAt if spent else snapshotTime",
+    "cohortBps": "cohortWeightsBps[k], k = number of cohortEdges <= createdAt (a note created exactly at an edge is in the next, lower tier)",
+    "rate": "points-wei per base-unit-second scaled by rateScale; a tokenId absent from the epoch's rate tree (rate null here) earns 0",
+    "tokenRate": "roundHalfUp(pointsWeiPerUsdDay * rateScale * price / (86400 * 10^assetDecimals * 10^priceDecimals))",
+    "shareRate": "roundHalfUp(pointsWeiPerUsdDay * rateScale * underlyingPrice * assetsPerShareUnit / (86400 * 10^underlyingDecimals * 10^priceDecimals * 10^shareDecimals))",
+    "roundHalfUp": "floor((2n + d) / (2d))",
+    "unreachedCohortEdge": "2^47 + tier"
+  },
+  "vectors": [
+    {
+      "name": "brief-worked-example-usdc",
+      "description": "1,000 USDC deposited at the start of a 30-day epoch, campaign under $10M (no milestone crossed: 6x), 7-day cliff. 23 accruing days x 1,000 USD x 6 = 138,000 points, less the rate's round-half-up residue.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1780272000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "1987200",
+        "cohortBps": "60000",
+        "pointsWei": "137999999999999999116800"
+      }
+    },
+    {
+      "name": "brief-worked-example-usdc-next-epoch",
+      "description": "The same note in the next full 30-day epoch: the cliff is long past, 30 days x 1,000 USD x 6 = 180,000 points.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1780272000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1782864000",
+        "snapshotTime": "1785456000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "60000",
+        "pointsWei": "179999999999999998848000"
+      }
+    },
+    {
+      "name": "eth-1-at-3000-twap",
+      "description": "1 ETH held across a whole 30-day epoch at a 3,000.00 USD TWAP (8 feed decimals), 6x: 3,000 x 30 x 6 = 540,000 points.",
+      "note": {
+        "tokenId": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "value": "1000000000000000000",
+        "createdAt": "1777680000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "34722222",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "300000000000",
+        "priceDecimals": "8",
+        "assetDecimals": "18"
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "60000",
+        "pointsWei": "539999996544000000000000"
+      }
+    },
+    {
+      "name": "ppusdc-share-erc4626",
+      "description": "1,000 ppUSDC shares (18 decimals) at convertToAssets(1e18) = 1.0006 aUSDC, priced at 1.00 USD, full epoch, every milestone crossed before the note (1x): 1,000.6 x 30 = 30,018 points.",
+      "note": {
+        "tokenId": "0xc246afb23482ff9596e9cee5f1f678efe0eb1ad6",
+        "value": "1000000000000000000000",
+        "createdAt": "1777680000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11581",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "1771632000",
+          "1772496000",
+          "1773360000"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "erc4626",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "underlyingPrice": "100000000",
+        "priceDecimals": "8",
+        "underlyingDecimals": "6",
+        "shareDecimals": "18",
+        "assetsPerShareUnit": "1000600"
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "10000",
+        "pointsWei": "30017952000000000000000"
+      }
+    },
+    {
+      "name": "cliff-ends-exactly-at-snapshot",
+      "description": "createdAt + 7 days == snapshotTime: no accruing second in the window.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1782259200",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "0",
+        "cohortBps": "60000",
+        "pointsWei": "0"
+      }
+    },
+    {
+      "name": "cliff-ends-exactly-at-window-start",
+      "description": "createdAt + 7 days == windowStart: the whole window accrues.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1779667200",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "60000",
+        "pointsWei": "179999999999999998848000"
+      }
+    },
+    {
+      "name": "created-mid-window",
+      "description": "Created 10 days into the window: accrues from day 17 to day 30 (13 days).",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1781136000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "1123200",
+        "cohortBps": "60000",
+        "pointsWei": "77999999999999999500800"
+      }
+    },
+    {
+      "name": "created-one-second-before-cohort-edge",
+      "description": "createdAt = edge0 - 1: still in tier 0 (6x).",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1779407999",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "1779408000",
+          "1781136000",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "60000",
+        "pointsWei": "179999999999999998848000"
+      }
+    },
+    {
+      "name": "created-exactly-at-cohort-edge",
+      "description": "createdAt = edge0: an edge belongs to the NEXT, lower tier (4x).",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1779408000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "1779408000",
+          "1781136000",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "40000",
+        "pointsWei": "119999999999999999232000"
+      }
+    },
+    {
+      "name": "created-exactly-at-second-cohort-edge",
+      "description": "createdAt = edge1: tier 2 (2x); edge2 is still the sentinel.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1781136000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "1779408000",
+          "1781136000",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "1123200",
+        "cohortBps": "20000",
+        "pointsWei": "25999999999999999833600"
+      }
+    },
+    {
+      "name": "sentinel-edges-latest-plausible-note",
+      "description": "No milestone crossed: edges are 2^47, 2^47+1, 2^47+2, which no real timestamp reaches, so every note is tier 0 (6x).",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1782259199",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "1",
+        "cohortBps": "60000",
+        "pointsWei": "69444444444444444"
+      }
+    },
+    {
+      "name": "spent-mid-window",
+      "description": "Created long before, spent 10 days into the window: 10 accruing days.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1777680000",
+        "spentAt": "1781136000"
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "864000",
+        "cohortBps": "60000",
+        "pointsWei": "59999999999999999616000"
+      }
+    },
+    {
+      "name": "spent-before-window-start",
+      "description": "Spent one second before windowStart: nothing in this window.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1775088000",
+        "spentAt": "1780271999"
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "0",
+        "cohortBps": "60000",
+        "pointsWei": "0"
+      }
+    },
+    {
+      "name": "spent-after-snapshot",
+      "description": "Spent after snapshotTime: the end is clamped to snapshotTime, the rest belongs to the next window.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1777680000",
+        "spentAt": "1783296000"
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "60000",
+        "pointsWei": "179999999999999998848000"
+      }
+    },
+    {
+      "name": "spent-inside-cliff",
+      "description": "Spent before its cliff ended: nothing accrues.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1780358400",
+        "spentAt": "1780531200"
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "0",
+        "cohortBps": "60000",
+        "pointsWei": "0"
+      }
+    },
+    {
+      "name": "created-after-snapshot",
+      "description": "Created one second after snapshotTime: nothing in this window.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "1000000000",
+        "createdAt": "1782864001",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": "11574074074074074",
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "rateDerivation": {
+        "kind": "token",
+        "pointsWeiPerUsdDay": "1000000000000000000",
+        "rateScale": "1000000000",
+        "price": "100000000",
+        "priceDecimals": "8",
+        "assetDecimals": "6"
+      },
+      "expected": {
+        "cliffOverlap": "0",
+        "cohortBps": "60000",
+        "pointsWei": "0"
+      }
+    },
+    {
+      "name": "token-missing-from-rate-table",
+      "description": "The note's tokenId has no leaf in the epoch's rate tree (e.g. the reward asset): 0 points.",
+      "note": {
+        "tokenId": "0x1111111111111111111111111111111111111111",
+        "value": "1000000000",
+        "createdAt": "1777680000",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "1780272000",
+        "snapshotTime": "1782864000",
+        "rateScale": "1000000000",
+        "rate": null,
+        "cliffSeconds": "604800",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "expected": {
+        "cliffOverlap": "2592000",
+        "cohortBps": "60000",
+        "pointsWei": "0"
+      }
+    },
+    {
+      "name": "maximum-numerator",
+      "description": "Range-check extremes: value 2^128-1, rate 2^64-1, cliffOverlap 2^32-1, cohortBps 60000. The numerator is about 2^240; it must be computed without precision loss.",
+      "note": {
+        "tokenId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "340282366920938463463374607431768211455",
+        "createdAt": "0",
+        "spentAt": null
+      },
+      "epoch": {
+        "windowStart": "0",
+        "snapshotTime": "4294967295",
+        "rateScale": "1000000000",
+        "rate": "18446744073709551615",
+        "cliffSeconds": "0",
+        "cohortEdges": [
+          "140737488355328",
+          "140737488355329",
+          "140737488355330"
+        ],
+        "cohortWeightsBps": [
+          "60000",
+          "40000",
+          "20000",
+          "10000"
+        ]
+      },
+      "expected": {
+        "cliffOverlap": "4294967295",
+        "cohortBps": "60000",
+        "pointsWei": "161759679965241228346912996117159324194405020848136946185399"
+      }
+    }
+  ]
+}

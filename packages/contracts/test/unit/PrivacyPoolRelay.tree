@@ -1,0 +1,113 @@
+UnitPrivacyPoolRelay::constructor
+├── When pool is address zero
+│   └── It should revert with PrivacyPoolRelay_ZeroPool
+├── When entrypoint is address zero
+│   └── It should revert with PrivacyPoolRelay_ZeroEntrypoint
+├── When announcer is address zero
+│   └── It should revert with PrivacyPoolRelay_ZeroAnnouncer
+├── When params are valid
+│   ├── It should set POOL immutable
+│   ├── It should set ENTRYPOINT immutable
+│   └── It should set ANNOUNCER immutable
+└── When root history not above max batch
+    └── It should revert with PrivacyPoolRelay_RootHistoryTooSmall
+
+UnitPrivacyPoolRelay::relay
+├── When withdrawnValue is zero
+│   └── It should revert with PrivacyPoolRelay_ZeroWithdrawal
+├── When recipient is zero
+│   └── It should revert with PrivacyPoolRelay_ZeroRecipient
+├── When msg value does not match nativeGas
+│   └── It should revert with PrivacyPoolRelay_NativeGasMismatch
+├── When fee exceeds maxRelayFee
+│   └── It should revert with PrivacyPoolRelay_FeeExceedsMax
+├── When max relay fee is zero uncapped
+│   └── It should relay the nonzero fee without reverting FeeExceedsMax
+├── When fee exceeds withdrawnValue
+│   └── It should revert with PrivacyPoolRelay_FeeExceedsWithdrawal
+├── When feeRecipient is address zero
+│   └── It should use msg sender as fee recipient
+├── When asset is native
+│   ├── When ETH transfer to recipient fails
+│   │   └── It should revert with PrivacyPoolRelay_ETHNetAmountTransferFailed
+│   ├── When fee is not zero
+│   │   ├── When ETH fee transfer fails
+│   │   │   └── It should revert with PrivacyPoolRelay_ETHFeeTransferFailed
+│   │   └── When ETH fee transfer succeeds
+│   │       ├── It should call pool transact
+│   │       ├── It should transfer recipient amount + msg value to recipient
+│   │       ├── It should transfer fee to fee recipient
+│   │       └── It should emit Relayed event
+│   └── When fee is zero
+│       ├── It should call pool transact
+│       ├── It should transfer full amount + msg value to recipient
+│       ├── It should not transfer fee
+│       └── It should emit Relayed event
+└── When asset is ERC20
+    ├── When ERC20 transfer to recipient fails
+    │   ├── When returning false
+    │   │   └── It should revert with SafeTransferLib TransferFailed
+    │   └── When reverting
+    │       └── It should revert with SafeTransferLib TransferFailed
+    ├── When fee is not zero
+    │   ├── When ERC20 fee transfer fails
+    │   │   ├── When returning false
+    │   │   │   └── It should revert with SafeTransferLib TransferFailed
+    │   │   └── When reverting
+    │   │       └── It should revert with SafeTransferLib TransferFailed
+    │   └── When ERC20 transfers succeed
+    │       ├── When msg value is zero
+    │       │   ├── It should call pool transact
+    │       │   ├── It should transfer recipient amount to recipient
+    │       │   ├── It should transfer fee to fee recipient
+    │       │   └── It should emit Relayed event
+    │       └── When msg value is greater than zero
+    │           ├── When ETH msg value transfer to recipient succeeds
+    │           │   ├── It should call pool transact
+    │           │   ├── It should transfer recipient amount to recipient
+    │           │   ├── It should transfer fee to fee recipient
+    │           │   ├── It should emit Relayed event
+    │           │   └── It should transfer msg value to recipient
+    │           └── When ETH msg value transfer to recipient fails
+    │               └── It should revert with ETHTransferFailed
+    └── When fee is zero
+        ├── When msg value is zero
+        │   ├── It should call pool transact
+        │   ├── It should transfer full amount to recipient
+        │   ├── It should not transfer fee
+        │   └── It should emit Relayed event
+        └── When msg value is greater than zero
+            ├── When ETH msg value transfer to recipient succeeds
+            │   ├── It should call pool transact
+            │   ├── It should transfer full amount to recipient
+            │   ├── It should not transfer fee
+            │   ├── It should emit Relayed event
+            │   └── It should transfer msg value to recipient
+            └── When ETH msg value transfer to recipient fails
+                └── It should revert with ETHTransferFailed
+
+UnitPrivacyPoolRelay::registerAndRelay
+├── When the keystore registration reverts
+│   └── It should bubble up the revert and not relay
+└── When registration succeeds
+    ├── It should resolve the keystore off the pool
+    ├── It should register the account before calling pool transact
+    └── It should relay the withdrawal to the recipient
+
+UnitPrivacyPoolRelay::relayAndAnnounce
+├── When params are valid
+│   ├── It should call pool transact
+│   ├── It should call announcer announce with the announcement args
+│   ├── It should emit Relayed event
+│   └── It should relay the withdrawal to the stealth recipient
+└── When stealth address does not match recipient
+    ├── It should not call pool transact
+    ├── It should not call the announcer
+    └── It should revert with PrivacyPoolRelay_AnnouncementRecipientMismatch
+
+UnitPrivacyPoolRelay::receive
+├── When sender is not pool
+│   └── It should revert with PrivacyPoolRelay_OnlyPoolCanSendETH
+└── When sender is pool
+    ├── It should accept the ETH
+    └── It should increase relay balance

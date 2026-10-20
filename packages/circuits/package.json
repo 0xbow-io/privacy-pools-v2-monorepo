@@ -1,0 +1,55 @@
+{
+  "name": "@privacy-pools-v2/circuits",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Privacy Pools V2 ZK Circuits",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    "./build/*": "./build/*"
+  },
+  "scripts": {
+    "build": "pnpm contract:all",
+    "compile": "npx circomkit compile",
+    "compile:all": "tsx scripts/forallcircuits.ts compile",
+    "setup": "tsx scripts/devKeysGuard.ts && npx circomkit setup",
+    "setup:all": "tsx scripts/forallcircuits.ts setup",
+    "contract": "npx circomkit contract",
+    "contract:all": "tsx scripts/forallcircuits.ts contract",
+    "prove": "npx circomkit prove",
+    "verify": "npx circomkit verify",
+    "test": "mocha",
+    "test:unit": "mocha --ignore 'test/benchmark.test.ts' --ignore 'test/constraints.test.ts'",
+    "test:constraints": "mocha -r ts-node/register 'test/constraints.test.ts' --reporter spec --timeout 300000",
+    "test:benchmark": "mocha -r ts-node/register 'test/benchmark.test.ts' --reporter spec --timeout 600000",
+    "lint": "echo 'Linting circuits...' && circomspect circuits/ --allow P1000 || echo '⚠️  Circomspect not installed. Run: cargo install circomspect'",
+    "fuzz": "./scripts/run-zkfuzz.sh",
+    "fuzz:all": "./scripts/run-zkfuzz.sh --all",
+    "fuzz:deposit": "./scripts/run-zkfuzz.sh deposit",
+    "fuzz:ragequit": "./scripts/run-zkfuzz.sh ragequit",
+    "fuzz:transact": "./scripts/run-zkfuzz.sh transact_2x2",
+    "generate:proof": "tsx scripts/generate-proofs.ts",
+    "generate:fixtures": "tsx scripts/generate-proofs.ts --all --out ../contracts/test/fixtures/proofs/",
+    "clean": "tsx scripts/forallcircuits.ts clear && rm -rf build ptau fuzz-output"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.20",
+    "@types/mocha": "10.0.10",
+    "@types/node": "20.19.27",
+    "@types/snarkjs": "0.7.9",
+    "@zk-kit/lean-imt": "2.2.4",
+    "chai": "4.5.0",
+    "circom_tester": "0.0.19",
+    "circomkit": "0.3.4",
+    "circomlibjs": "0.1.7",
+    "mocha": "10.8.2",
+    "snarkjs": "0.7.5",
+    "ts-node": "10.9.2",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@zk-kit/binary-merkle-root.circom": "2.0.0",
+    "circomlib": "2.0.5"
+  }
+}

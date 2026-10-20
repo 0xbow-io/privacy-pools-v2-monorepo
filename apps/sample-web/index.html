@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NoteManager · localStorage example</title>
+  <style>
+    body { font-family: monospace; padding: 1rem; background: #0d0d0d; color: #e0e0e0; }
+    h1 { font-size: 1rem; color: #888; margin-bottom: 1rem; }
+    pre { background: #1a1a1a; border: 1px solid #333; padding: 1rem; white-space: pre-wrap; word-break: break-all; min-height: 4rem; }
+    button { margin: 0.25rem 0.25rem 1rem 0; padding: 0.4rem 0.8rem; font-family: monospace; cursor: pointer; background: #222; color: #e0e0e0; border: 1px solid #444; }
+    button:hover { background: #333; }
+  </style>
+</head>
+<body>
+  <h1>NoteManager · localStorage persistence (real SDK)</h1>
+
+  <button id="btn-run">Run example</button>
+  <button id="btn-raw">Show raw localStorage</button>
+  <button id="btn-clear">Clear storage</button>
+  <button id="btn-ipfs">IpfsCircuitArtifacts smoke test</button>
+
+  <pre id="output">Click "Run example" to start.</pre>
+
+  <hr style="border-color:#333; margin: 1.5rem 0;" />
+
+  <h1>Key Derivation · wallet signature (MetaMask)</h1>
+  <p style="color:#888; font-size:0.85rem; margin-bottom:0.75rem;">
+    Signs <code style="color:#aaa">PP_V2_APP_SECRET_DERIVATION</code> via <code style="color:#aaa">personal_sign</code>
+    and derives Privacy Pools keys from the result. Requires MetaMask or compatible injected wallet.
+  </p>
+
+  <button id="btn-derive">Connect &amp; Derive Keys</button>
+
+  <pre id="output-derive">Click "Connect &amp; Derive Keys" to start.</pre>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

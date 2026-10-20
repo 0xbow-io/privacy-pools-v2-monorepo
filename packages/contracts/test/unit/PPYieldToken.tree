@@ -1,0 +1,140 @@
+UnitPPYieldToken::constructor
+├── When admin is the zero address
+│   └── It should revert with OwnableInvalidOwner
+├── When initial fee exceeds max
+│   └── It should revert with PPYieldToken_FeeTooHigh
+└── When called with valid parameters
+    ├── It sets feeBps and admin
+    ├── It sets the asset name symbol and decimals
+    └── It initializes accounting to zero
+
+UnitPPYieldToken::decimals
+├── It returns 18
+└── It offset is twelve
+
+UnitPPYieldToken::deposit
+├── Given total supply is zero_ when assets is zero
+│   └── It should revert with PPYieldToken_ZeroShares
+├── Given total supply is zero_ when called with valid assets
+│   ├── It emits a Deposit event
+│   ├── It mints assets shares and pulls the assets
+│   └── It sets lastCheckpointBalance and leaves accumulatedFees at zero
+├── Given total supply is non zero_ given yield has accrued
+│   ├── It checkpoints fee delta into accumulatedFees
+│   ├── It sets lastCheckpointBalance to the post deposit balance
+│   └── It mints fewer than one to one shares since the rate rose
+├── Given total supply is non zero_ given no yield
+│   └── It leaves accumulatedFees unchanged and mints at the current rate
+├── When the deposit would mint zero shares
+│   └── It should revert with PPYieldToken_ZeroShares
+└── When the caller has insufficient allowance
+    └── It should revert with ERC20InsufficientAllowance
+
+UnitPPYieldToken::maxDeposit
+├── Given not paused
+│   └── It returns uint max
+└── Given paused
+    └── It returns zero while paused
+
+UnitPPYieldToken::mint
+├── When shares is zero
+│   └── It should revert with PPYieldToken_ZeroShares
+└── When called with valid shares
+    └── It pulls previewMint assets and mints exactly shares
+
+UnitPPYieldToken::withdraw
+├── When assets is zero
+│   └── It should revert with PPYieldToken_ZeroAssets
+├── Given yield has accrued
+│   ├── It emits a Withdraw event
+│   └── It transfers assets checkpoints the fee and updates lastCheckpointBalance
+├── When withdraw exceeds max withdraw
+│   └── It should revert with ERC4626ExceededMaxWithdraw
+└── When withdrawing on behalf without allowance
+    └── It should revert with ERC20InsufficientAllowance
+
+UnitPPYieldToken::redeem
+├── When shares is zero
+│   └── It should revert with PPYieldToken_ZeroAssets
+├── When redeem would return zero assets
+│   └── It should revert with PPYieldToken_ZeroAssets
+├── When called with valid shares
+│   ├── It returns principal plus net delta and checkpoints the fee
+│   └── It leaves the protocol fee in the vault
+└── When redeem exceeds max redeem
+    └── It should revert with ERC4626ExceededMaxRedeem
+
+UnitPPYieldToken::claimFees
+├── When the caller is not admin
+│   └── It should revert with OwnableUnauthorizedAccount
+├── Given there are accumulated and pending fees
+│   ├── It emits a FeesClaimed event
+│   └── It sweeps the fee zeroes accumulatedFees and preserves the exchange rate
+├── Given there are only pending fees
+│   └── It checkpoints and sweeps the pending portion
+└── Given there are zero fees
+    └── It emits a FeesClaimed event with amount zero and transfers nothing
+
+UnitPPYieldToken::totalAssets
+├── Given no yield
+│   └── It returns aUSDC balance minus accumulatedFees
+├── Given pending yield
+│   └── It returns balance minus accumulatedFees plus pending fee
+└── Given balance is below current fees
+    └── It returns zero clamped
+
+UnitPPYieldToken::exchangeRate
+├── When total supply is zero
+│   └── It returns the base rate
+├── When total supply is non zero
+│   └── It returns convertToAssets of one whole share
+└── Given yield has accrued
+    └── It increases relative to before net of the fee
+
+UnitPPYieldToken::claimableFees
+├── Given no yield
+│   └── It returns accumulatedFees
+└── Given pending yield
+    └── It returns accumulatedFees plus fee delta
+
+UnitPPYieldToken::feeAccrual
+├── Given the fee is non zero
+│   ├── It accrues fee delta to the protocol
+│   └── It credits net delta to holders via the exchange rate
+├── Given the fee is zero
+│   └── It accrues no fee and credits all yield to holders
+├── Given yield accrues across multiple intervals
+│   └── It accumulates fees additively across checkpoints
+├── Given a donation directly to the vault
+│   └── It treats the donation as yield
+└── Given a fuzzed sequence of actions
+    └── It never lets total redeemable plus accumulatedFees exceed the balance
+
+UnitPPYieldToken::inflationAttack
+└── Given a one wei seed and large donation
+    └── It still mints non zero shares to a normal second depositor
+
+UnitPPYieldToken::noLeakRoundTrip
+└── Given a deposit then immediate redeem with no yield
+    └── It returns approximately N aUSDC and zeroes total supply
+
+UnitPPYieldToken::lossHandling
+├── Given balance drops_ holders bear it no fee
+│   ├── It accrues no fee on a drop and reflects the loss in net assets
+│   └── It still lets the holder exit bearing the loss pro rata
+└── Given recovery below last checkpoint_ accrues no fee
+    └── It charges no fee on recovery below the last checkpoint
+
+UnitPPYieldToken::maxMint
+├── Given not paused
+│   └── It returns uint max
+└── Given paused
+    └── It returns zero while paused
+
+UnitPPYieldToken::mint
+└── Given yield has accrued
+    └── It checkpoints the fee on the prior yield and mints exactly shares
+
+UnitPPYieldToken::redeem
+└── When redeeming on behalf without allowance
+    └── It should revert with ERC20InsufficientAllowance

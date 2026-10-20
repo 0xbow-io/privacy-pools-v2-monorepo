@@ -1,0 +1,76 @@
+name: CI — Circuits
+
+on:
+  push:
+    branches: [main, dev, feat/contracts]
+    paths:
+      - 'packages/circuits/**'
+  pull_request:
+    paths:
+      - 'packages/circuits/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (Circomspect)
+    runs-on: Big_Guy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install Circomspect
+        run: cargo install circomspect
+
+      - name: Run Circomspect
+        working-directory: packages/circuits
+        run: circomspect circuits/ --allow P1000 -l ERROR
+
+  build:
+    name: Build & Test
+    runs-on: Big_Guy
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Circom
+        run: |
+          curl -sSL https://github.com/iden3/circom/releases/download/v2.2.3/circom-linux-amd64 -o circom
+          chmod +x circom
+          sudo mv circom /usr/local/bin/
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      # canon-guard depends on @safe-global/safe-contracts via github: (SSH).
+      # CI runners don't have SSH keys, so we redirect all GitHub git traffic to HTTPS.
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Fail if committed groth16_verifier.sol files don't match the committed vkeys.
+      - name: Verify groth16_verifier.sol is in sync with vkeys
+        run: pnpm --filter @privacy-pools-v2/circuits contract:all && git diff --exit-code -- 'packages/circuits/build/**/groth16_verifier.sol'
+
+      - name: Run circuit tests
+        run: pnpm --filter @privacy-pools-v2/circuits test

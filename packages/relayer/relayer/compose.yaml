@@ -1,0 +1,11 @@
+services:
+  relayer:
+    build:
+      context: ../../..
+      dockerfile: packages/relayer/relayer/Dockerfile.staging
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - RPC_URL_EVM_1=
+      - SIGNER_PRIVATE_KEY_EVM_1=

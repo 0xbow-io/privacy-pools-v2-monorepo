@@ -1,0 +1,21 @@
+{
+  "name": "@privacy-pools-v2/sample-web",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@privacy-pools-v2/core-sdk": "workspace:*",
+    "@privacy-pools-v2/evm-sdk": "workspace:*",
+    "viem": "^2.45.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.0.0",
+    "vite-plugin-node-polyfills": "^0.26.0"
+  }
+}

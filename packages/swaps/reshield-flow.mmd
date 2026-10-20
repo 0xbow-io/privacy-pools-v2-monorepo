@@ -1,0 +1,106 @@
+%% Full reshield (withdraw → swap → deposit back) flow — every participant.
+%% Phases: estimate → deposit proof → prepared quote → relay → on-chain execution.
+%% Render: mmdc -i reshield-flow.mmd -o reshield-flow.svg  (or any mermaid viewer)
+
+sequenceDiagram
+    autonumber
+    actor User as User / Integrator
+    participant Reshield as SDK<br/>PoolSessionReshield
+    participant Deposit as SDK<br/>PoolSessionDeposit
+    participant Core as SDK<br/>TransactOrchestrator
+    participant EPI as SDK<br/>EntrypointInteractor (RPC)
+    participant LiFiAPI as LiFi API<br/>(off-chain quotes)
+    participant Relayer as Relayer service<br/>(quote + relay endpoints)
+    participant RS as RelaySwaps<br/>contract
+    participant Pool as PrivacyPool /<br/>PoolVault
+    participant EP as Entrypoint<br/>contract
+    participant Diamond as LiFi Diamond<br/>(on-chain executor)
+
+    %% ============ PHASE 1 — estimate ============
+    rect rgb(40, 40, 60)
+        Note over User,Relayer: Phase 1 — estimateReshieldAmount()
+        User->>Reshield: estimateReshieldAmount(amount, tokenId, outputToken)
+        Reshield->>EPI: getAssetConfig(outputToken) + getAssetConfig(tokenId)
+        EPI-->>Reshield: enabled, minAmount, vettingFeeBPS, maxRelayFee
+        Note over Reshield: AssetNotSupported if output disabled
+        Reshield->>Relayer: getSwapQuote(commit: false, recipient: address(0),<br/>minOutputAmount: 0, dustRecipient)
+        Relayer-->>Reshield: feeAmount
+        Note over Reshield: fee bounds: RelayFeeExceedsMax / fee < amount
+        Reshield->>LiFiAPI: getSwapQuote(netSwapAmount = amount - fee)
+        LiFiAPI-->>Reshield: toAmount, toAmountMin, route echo
+        Note over Reshield: route echo cross-check (SwapQuoteMismatch)<br/>noteValue = 99% of toAmountMin / (1 + vettingFeeBPS)<br/>DepositBelowMinimum check
+        Reshield-->>User: ReshieldEstimate { noteValue, vettingFee, totalDepositCost }
+    end
+
+    %% ============ PHASE 2 — deposit proof ============
+    rect rgb(40, 60, 40)
+        Note over User,Deposit: Phase 2 — deposit proof for the exact note value
+        User->>Deposit: prepareDeposit(noteValue, outputToken)
+        Note over Deposit: generates deposit ZK proof (~30-60s)<br/>commits to depositAmount, outputToken, pool
+        Deposit-->>User: depositResult { callData, to: Entrypoint, pendingNote }
+    end
+
+    %% ============ PHASE 3 — prepared quote ============
+    rect rgb(60, 40, 40)
+        Note over User,Relayer: Phase 3 — prepareReshieldQuote()
+        User->>Reshield: prepareReshieldQuote(depositResult, totalDepositCost, ...)
+        Note over Reshield: pre-flight BEFORE any network call:<br/>depositResult.to === session Entrypoint<br/>(DepositTargetMismatch)
+        Reshield->>EPI: getAssetConfig(outputToken) + getAssetConfig(tokenId)
+        EPI-->>Reshield: configs
+        Note over Reshield: output enabled, pendingNote.tokenId === outputToken,<br/>noteValue ≥ minAmount, totalDepositCost === noteValue + on-chain vetting fee
+        Reshield->>LiFiAPI: getContractCallsQuote(swap A→B,<br/>contractCalls: [Entrypoint.deposit(depositProof)])
+        LiFiAPI-->>Reshield: transactionData (swap + deposit embedded),<br/>transactionTo, approvalAddress, fromAmount, route echo
+        Note over Reshield: route echo cross-check (SwapQuoteMismatch)
+        Reshield->>Relayer: getSwapQuote(commit: false) — budget check
+        Relayer-->>Reshield: feeAmount
+        Note over Reshield: fee bounds + lifiQuote.fromAmount ≤ amount - fee
+        Reshield->>Relayer: getSwapQuote(commit: true, swapCalldata,<br/>swapTarget, approvalAddress, recipient: address(0),<br/>minOutputAmount: 0, dustRecipient)
+        Note over Relayer: zEvmSwapQuoteRequest schema:<br/>swapCalldata + swapTarget required when commit,<br/>zero-recipient ⇒ nativeGas = 0 & minOutputAmount = 0
+        Note over Relayer: ABI-encode RelaySwapRouting (11 fields,<br/>embeds full swapCalldata), sign with expiration
+        Relayer-->>Reshield: feeCommitment { data, amountSent, expiration, signature }
+        Note over Reshield: fee re-check, decodeRelaySwapRouting ONCE:<br/>swapCalldata byte-equality, zero-recipient sentinel,<br/>minOutputAmount = 0, nativeGas = 0, outputToken,<br/>dustRecipient, feeAmount, swapTarget, approvalAddress
+        Reshield-->>User: PreparedReshieldQuote { selectedQuote, swapCalldata,<br/>feeAmount, swapTarget, approvalAddress, dustRecipient }
+    end
+
+    %% ============ PHASE 4 — relay ============
+    rect rgb(60, 60, 40)
+        Note over User,Relayer: Phase 4 — relayReshield()
+        User->>Reshield: relayReshield(prepared quote fields)
+        Note over Reshield: defense-in-depth re-validation:<br/>relayer chain === pool chain, decode routing,<br/>swapCalldata byte-equality, amountSent = amount + fee,<br/>reshield invariants (+ optional swapTarget /<br/>approvalAddress / dustRecipient expecteds)
+        Reshield->>Core: prepareTransact(processor: RelaySwaps,<br/>data: signed routing, amountOut: amountSent)
+        Note over Core: withdrawal ZK proof (~30-60s) —<br/>transact circuit, context hash commits to<br/>processor + routing (incl. full swapCalldata)
+        Core-->>Reshield: proof, noteData, spentNotes, changePendingNotes
+        Reshield->>Relayer: POST /relay-swap { proof, signedSwapCommitment, noteData }
+        Note over Relayer: verify commitment signature + expiration,<br/>commitment asset === proof asset,<br/>amountOut === amountSent, fee ≤ amountOut,<br/>decode routing: feeRecipient = relayer's,<br/>dustRecipient ≠ 0, zero-recipient invariants
+    end
+
+    %% ============ PHASE 5 — on-chain ============
+    rect rgb(40, 60, 60)
+        Note over Relayer,Diamond: Phase 5 — on-chain execution (single tx)
+        Relayer->>RS: execute(proof, transactParams, noteData)
+        Note over RS: decode SwapRouting from proof-bound data,<br/>recipient == address(0) ⇒ require nativeGas = 0<br/>(RelaySwaps_NativeGasWithoutRecipient) and<br/>minOutputAmount = 0 (RelaySwaps_MinOutputWithoutRecipient)
+        RS->>EP: assets(token).maxRelayFee
+        EP-->>RS: maxRelayFee
+        Note over RS: feeAmount ≤ maxRelayFee (when nonzero)
+        RS->>Pool: transact(proof, transactParams, noteData)
+        Note over Pool: verify ZK proof: nullifiers, commitments,<br/>context hash (locks processor + routing + calldata)
+        Pool-->>RS: transfer withdrawn tokens (amountSent)
+        RS->>Relayer: pay feeAmount in input token (feeRecipient)
+        Note over RS: approve swapTarget for amount - fee<br/>(approvalAddress), then call with swapCalldata
+        RS->>Diamond: swapCalldata (swap + embedded contractCalls)
+        Diamond->>Diamond: swap token A → token B
+        Diamond->>EP: deposit(depositProof, noteData) with token B
+        Note over EP: verify deposit proof, charge vettingFeeBPS,<br/>reverts if swap output insufficient —<br/>THIS is the slippage protection
+        EP->>Pool: insert new note commitment
+        Note over RS: sweep dust (balance deltas only) → dustRecipient,<br/>reset approval to 0
+        RS-->>Relayer: tx success
+        Relayer-->>Reshield: txHash
+    end
+
+    %% ============ PHASE 6 — settlement ============
+    rect rgb(50, 40, 60)
+        Note over Reshield,User: Phase 6 — settlement
+        Reshield->>Reshield: waitForTransactionReceipt(txHash)
+        Note over Reshield: persistNoteUpdates: inputs → SPENT,<br/>change note tracked; deposited note discovered<br/>via the pending note from prepareDeposit
+        Reshield-->>User: TxReceipt
+    end

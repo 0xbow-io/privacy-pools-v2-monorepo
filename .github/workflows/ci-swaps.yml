@@ -1,0 +1,70 @@
+name: CI — Swaps
+
+on:
+  push:
+    branches: [dev, v2.0, FeAT/swaps]
+    paths:
+      - 'packages/swaps/**'
+      # swaps typechecks against the SDK packages' public API, so a change there can break it.
+      - 'packages/core-sdk/**'
+      - 'packages/evm-sdk/**'
+      - 'packages/relayer/dust-rescue-prover/**'
+  pull_request:
+    branches: [dev, v2.0, FeAT/swaps]
+    paths:
+      - 'packages/swaps/**'
+      - 'packages/core-sdk/**'
+      - 'packages/evm-sdk/**'
+      - 'packages/relayer/dust-rescue-prover/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Force HTTPS for GitHub deps
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `--only` builds just the listed packages, ordered by the dependency graph. Without it, turbo's
+      # `^build` also builds circuits (circom) and contracts (forge), which these runners don't install
+      # and no SDK build needs.
+      - name: Build SDK
+        run: pnpm turbo run build --filter=@privacy-pools-v2/core-sdk --filter=@privacy-pools-v2/evm-sdk --only
+
+      # swaps imports @privacy-pools-v2/dust-rescue-prover, whose types resolve to its compiled dist.
+      - name: Build dust-rescue-prover
+        run: pnpm --filter @privacy-pools-v2/dust-rescue-prover build
+
+      # The tests here hit live networks and are not run in CI, but they are still compiled against
+      # the SDK API: this is what catches them drifting when core-sdk / evm-sdk change.
+      - name: Typecheck swaps
+        run: pnpm --filter @privacy-pools-v2/swaps typecheck
+
+#       - name: Build
+#         run: pnpm --filter @privacy-pools-v2/swaps build
+
+#       - name: Run tests
+#         run: pnpm --filter @privacy-pools-v2/swaps test

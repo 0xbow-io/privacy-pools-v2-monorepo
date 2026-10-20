@@ -1,0 +1,83 @@
+{
+    "name": "@privacy-pools-v2/swaps",
+    "version": "1.0.1",
+    "private": true,
+    "description": "Privacy Pools V2 Cross-Chain Swaps via Intents",
+    "license": "BUSL-1.1",
+    "type": "module",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "start": "tsx src/main.ts",
+        "start:dev": "tsx watch src/main.ts",
+        "test": "pnpm typecheck && vitest run",
+        "test:unit": "pnpm typecheck && vitest run spec",
+        "test:watch": "vitest",
+        "typecheck": "tsc --noEmit -p tsconfig.eslint.json",
+        "clean": "rm -rf dist",
+        "format": "prettier --check \"{src,test}/**/*.{js,ts,json}\"",
+        "format:fix": "prettier --write \"{src,test}/**/*.{js,ts,json}\"",
+        "lint": "eslint \"{src,test}/**/*.{js,ts,json}\"",
+        "lint:fix": "pnpm lint --fix"
+    },
+    "dependencies": {
+        "@lifi/sdk": "^4.0.0",
+        "@lifi/sdk-provider-ethereum": "^4.0.0",
+        "@lifi/types": "^17.82.1",
+        "@nestjs/common": "^11.1.18",
+        "@nestjs/core": "^11.1.18",
+        "@nestjs/platform-express": "^11.1.18",
+        "@nestjs/swagger": "^11.2.7",
+        "@privacy-pools-v2/core-sdk": "workspace:*",
+        "@privacy-pools-v2/dust-rescue-prover": "workspace:*",
+        "@privacy-pools-v2/evm-sdk": "workspace:*",
+        "express": "^5.2.1",
+        "nanoid": "^3.3.11",
+        "nestjs-cls": "^6.2.0",
+        "nestjs-zod": "3.0.0",
+        "reflect-metadata": "^0.2.2",
+        "rxjs": "^7.8.2",
+        "tozod": "^3.0.0",
+        "viem": "^2.52.0",
+        "winston": "^3.19.0",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@noble/curves": "2.0.1",
+        "@nestjs/testing": "^11.1.18",
+        "@swc/core": "^1.15.40",
+        "@types/express": "^5.0.6",
+        "@types/jest": "^30.0.0",
+        "@types/node": "^25.9.1",
+        "@types/supertest": "^6.0.3",
+        "@typescript-eslint/eslint-plugin": "7.18.0",
+        "@typescript-eslint/parser": "7.18.0",
+        "@zk-kit/lean-imt": "^2.2.4",
+        "circomlibjs": "0.1.7",
+        "eslint": "8.56.0",
+        "eslint-config-prettier": "9.1.0",
+        "eslint-plugin-prettier": "5.2.1",
+        "forge-std": "github:foundry-rs/forge-std#v1.14.0",
+        "solady": "0.1.26",
+        "@openzeppelin/contracts": "5.4.0",
+        "supertest": "^7.2.2",
+        "tsup": "^8.0.2",
+        "tsx": "^4.20.3",
+        "typescript": "^5.4.5",
+        "unplugin-swc": "^1.5.9",
+        "vitest": "^1.6.1"
+    }
+}

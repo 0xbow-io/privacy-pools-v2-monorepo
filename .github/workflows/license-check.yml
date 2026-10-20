@@ -1,0 +1,31 @@
+name: CI — Licenses
+
+# Every directory has its own license (root LICENSE map). A file merged with the wrong SPDX header,
+# a manifest with the wrong license field, a drifted LICENSE copy, or a BUSL file importing the GPL-3.0
+# verifier sources fails here. No path filter: a regression can come from any directory.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, dev, feat/contracts]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  licenses:
+    name: License headers and manifests
+    # A ~12s dependency-free check: a GitHub-hosted runner keeps it off the Big_Guy queue.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check licenses
+        run: node .github/scripts/check-licenses.mjs

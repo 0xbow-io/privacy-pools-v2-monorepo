@@ -1,0 +1,27 @@
+{
+    "chains": {
+        "stellar": [
+            {
+                "id": 1,
+                "name": "testnet",
+                "network_passphrase": "Test SDF Network ; September 2015",
+                "rpc_url": "https://soroban-testnet.stellar.org/",
+                "pool_contract": "CD7MO327ZMNRWQFKPCTOOZ45LDH3EOVCEM2BYRJSGXYVG4Q2BXJ4LNXY",
+                "relay_contract": "CAL2LFF6F2GDXIEYA6VTH7BF2E2JZPSOUASBL6IGVLHVIK2RSESD42W6",
+                "keystore_contract": "CBCRN7ZYS5J3NCFL6CSCDZAFH7WZK3WPNXPNE3HFMRQ277AH6E5QDR3P",
+                "asp_registry_contract": "CAU4IZTQYTXBUTCJIGVQOPSPEUTC6G4LXFCPYQRF4VLOCQDNY3ICAOZD",
+                "fee_receiver_address": "GAEWH4UQTL5FVVUSMFNJY23CBJOTLAF2OPIHN5YJ3ON5Q4RLCXGD5GXE",
+                "signer_secret_key": "SSETVIASIGNERSECRETKEYSTELLARENVXXXXXXXXXXXXXXXXXXXXXXXX",
+                "flat_fee_amount": "200000",
+                "quote_expiration_ms": 120000,
+                "supported_assets": [
+                    {
+                        "address": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+                        "ticker": "XLM",
+                        "decimals": 7
+                    }
+                ]
+            }
+        ]
+    }
+}

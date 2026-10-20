@@ -1,0 +1,73 @@
+{
+    "_comment": "Shared contract fixture for the relayer alert wire format. Checked by packages/relayer/relayer (alert-publisher.spec.ts: publishAlert must produce each valid event exactly) and packages/relayer/alert-dispatcher (pubsub.schemas.spec.ts: zAlertEvent must accept every valid event and reject every invalid one). Change the wire format => change this file => both sides' specs show the drift.",
+    "valid": [
+        {
+            "severity": "turbo",
+            "message": "Signer wallet is out of gas funds",
+            "context": "EVMChainService",
+            "dedupKey": "EVMChainService.signerOutOfGas.8453",
+            "timestamp": "2026-10-16T12:00:00.000Z"
+        },
+        {
+            "severity": "warn",
+            "message": "Dust rescue pricing/registration failed for 0xabc - job needs manual replay",
+            "context": "EvmRelayService",
+            "dedupKey": "dustRescue.8453",
+            "timestamp": "2026-10-16T12:30:15.123Z",
+            "requestId": "req-123",
+            "meta": { "chainId": 8453, "retriable": false, "nested": { "attempt": 2 } }
+        }
+    ],
+    "invalid": [
+        {
+            "description": "missing dedupKey",
+            "value": {
+                "severity": "turbo",
+                "message": "m",
+                "context": "c",
+                "timestamp": "2026-10-16T12:00:00.000Z"
+            }
+        },
+        {
+            "description": "unknown severity",
+            "value": {
+                "severity": "critical",
+                "message": "m",
+                "context": "c",
+                "dedupKey": "k",
+                "timestamp": "2026-10-16T12:00:00.000Z"
+            }
+        },
+        {
+            "description": "non-string message",
+            "value": {
+                "severity": "turbo",
+                "message": 42,
+                "context": "c",
+                "dedupKey": "k",
+                "timestamp": "2026-10-16T12:00:00.000Z"
+            }
+        },
+        {
+            "description": "non-ISO timestamp",
+            "value": {
+                "severity": "turbo",
+                "message": "m",
+                "context": "c",
+                "dedupKey": "k",
+                "timestamp": "yesterday"
+            }
+        },
+        {
+            "description": "meta is not an object",
+            "value": {
+                "severity": "warn",
+                "message": "m",
+                "context": "c",
+                "dedupKey": "k",
+                "timestamp": "2026-10-16T12:00:00.000Z",
+                "meta": "oops"
+            }
+        }
+    ]
+}

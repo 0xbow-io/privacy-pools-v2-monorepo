@@ -1,0 +1,18 @@
+UnitPPYieldTokenZapFactory::createZap
+├── It deploys tracks and wires
+├── It emits ZapCreated
+├── It emits ZapCreated with exact zap topic
+├── It multiple wrappers
+├── It zap is functional
+├── It reverts when not owner
+├── It reverts for foreign pool wrapper
+└── It reverts when already deployed
+
+UnitPPYieldTokenZapFactory::constructor
+└── It reverts on zero pool
+
+UnitPPYieldTokenZapFactory::allZaps
+└── It reverts out of bounds
+
+UnitPPYieldTokenZapFactory::renounceOwnership
+└── It reverts when called

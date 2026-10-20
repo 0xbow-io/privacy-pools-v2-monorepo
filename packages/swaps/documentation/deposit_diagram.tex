@@ -1,0 +1,38 @@
+\documentclass[tikz, border=2mm]{standalone}
+
+\usetikzlibrary{arrows,shadows}
+\usepackage{pgf-umlsd}
+
+\begin{document}
+
+\begin{sequencediagram}
+  \newinst{front}{Frontend}
+  \newinst{sdk}{PP SDK}
+  \newinst{lifi}{LiFi}
+
+  % First quoting
+  \begin{sdblock}{Rates quote}{Informs user about rates between currencies.}
+    \mess{front}{rate request}{lifi}
+    \mess{lifi}{rate}{front}
+  \end{sdblock}
+  % Calldata quoting
+  \begin{sdblock}{Full quote}{Calldata execution quote.}
+    \begin{call}{front}{deposit proof request}{sdk}{zk proof}
+    \end{call}
+    \mess{sdk}{deposit calldata}{lifi}
+    \mess{lifi}{calldata execution binding quote}{front}
+  \end{sdblock}
+  % User approvals
+  \begin{sdblock}{Approvals}{user approves operations.}
+    \begin{call}{front}{approval}{front}{operation approvals}
+    \end{call}
+    \mess{front}{execution of quoted and approved operations}{lifi}
+  \end{sdblock}
+  \begin{sdblock}{Intents execution}{Lifi executes operations.}
+    \begin{call}{lifi}{fulfilment}{lifi}{receipt}
+    \end{call}
+    \mess{lifi}{receipt}{front}
+   \end{sdblock}
+\end{sequencediagram}
+
+\end{document}

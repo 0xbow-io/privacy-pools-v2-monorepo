@@ -1,0 +1,50 @@
+import { defineConfig } from "eslint/config";
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+import prettierConfig from "eslint-config-prettier";
+import globals from "globals";
+
+export default defineConfig([
+  { ignores: ["dist/**"] },
+  eslint.configs.recommended,
+  tseslint.configs.strict,
+  tseslint.configs.stylistic,
+  prettierConfig,
+  {
+    plugins: {
+      tseslint
+    },
+    rules: {
+      semi: "error",
+      "prefer-const": "error",
+      "@typescript-eslint/no-non-null-assertion": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "caughtErrorsIgnorePattern": "^_",
+          "destructuredArrayIgnorePattern": "^_"
+        }
+      ]
+    },
+  },
+  {
+    files: ["src/**/*.ts", "test/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      parserOptions: {
+        allowDefaultProject: ["test/**/*.ts"],
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "warn",
+      "@typescript-eslint/no-unsafe-argument": "warn",
+    }
+  }
+]);

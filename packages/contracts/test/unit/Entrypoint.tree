@@ -1,0 +1,97 @@
+UnitEntrypoint::constructor
+├── When access router is invalid
+│   └── It should revert with Permissioned_InvalidAccessRouter
+└── When called
+    ├── It sets the access router
+    └── It should disable initializers on implementation
+
+UnitEntrypoint::Initialize
+├── Given already initialized
+│   └── It should revert with InvalidInitialization
+└── Given not initialized
+    └── It should set the pool vault
+
+UnitEntrypoint::Sweep
+├── Given caller does not have ENTRYPOINT_MANAGER_ROLE
+│   └── It should revert with NotAuthorized
+└── Given caller is entrypoint manager
+    ├── When asset is native
+    │   ├── Given recipient rejects ETH
+    │   │   └── It should revert with SafeTransferLib.ETHTransferFailed
+    │   └── Given recipient accepts ETH
+    │       ├── It should transfer the native asset
+    │       └── It should emit Swept event
+    └── When asset is ERC20
+        ├── It should query the token balance
+        ├── It should transfer the ERC20 tokens
+        └── It should emit Swept event
+
+UnitEntrypoint::SetAssetConfiguration
+├── Given caller does not have ENTRYPOINT_MANAGER_ROLE
+│   └── It should revert with NotAuthorized
+└── Given caller is entrypoint manager
+    ├── When vetting fee BPS is greater than or equal to MAX FEE BPS
+    │   └── It should revert with Entrypoint_InvalidFeeBPS
+    └── When vetting fee BPS is less than MAX FEE BPS
+        ├── When enabling asset
+        │   ├── When min amount is zero
+        │   │   └── It should revert with Entrypoint_InvalidMinAmount
+        │   └── When min amount is gt 0
+        │       ├── When asset is native
+        │       │   ├── It should set the asset configuration
+        │       │   └── It should emit AssetConfigurationSet event
+        │       └── When asset is ERC20
+        │           ├── It should approve pool vault for ERC20 assets
+        │           ├── It should set the asset configuration
+        │           └── It should emit AssetConfigurationSet event
+        └── When disabling asset
+            ├── When asset is native
+            │   ├── It should set the asset configuration
+            │   └── It should emit AssetConfigurationSet event
+            └── When asset is ERC20
+                ├── It should revoke pool vault approval
+                ├── It should set the asset configuration
+                └── It should emit AssetConfigurationSet event
+
+UnitEntrypoint::Deposit
+├── Given asset is not enabled
+│   └── It should revert with Entrypoint_AssetNotEnabled
+├── Given value is below minimum
+│   └── It should revert with Entrypoint_BelowMinAmount
+└── Given asset is enabled and value is above minimum
+    ├── When asset is native
+    │   ├── Given msg value does not match amount plus fees
+    │   │   └── It should revert with Entrypoint_InvalidETHAmount
+    │   └── Given msg value matches amount plus fees
+    │       ├── It should call pool vault deposit with correct value
+    │       ├── It should emit Deposited event
+    │       ├── When ciphertext is empty
+    │       │   └── It should not call asp registry registerLabel
+    │       └── When ciphertext is not empty
+    │           ├── It should read the authoritative ASP registry from poolVault
+    │           └── It should call asp registry registerLabel
+    └── When asset is ERC20
+        ├── When msg value is not zero
+        │   └── It should revert with Entrypoint_UnexpectedETHAmount
+        └── When msg value is zero
+            ├── It should transfer tokens from caller
+            ├── It should call pool vault deposit
+            ├── It should emit Deposited event
+            ├── When ciphertext is empty
+            │   └── It should not call asp registry registerLabel
+            └── When ciphertext is not empty
+                ├── It should read the authoritative ASP registry from poolVault
+                └── It should call asp registry registerLabel
+
+UnitEntrypoint::UpgradeToAndCall
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    └── It should upgrade successfully
+
+UnitEntrypoint::SetPoolVault
+├── Given caller does not have UPGRADER_ROLE
+│   └── It should revert with Permissioned_NotAuthorized
+└── Given caller has UPGRADER_ROLE
+    ├── It should set the pool vault
+    └── It should emit PoolVaultSet event

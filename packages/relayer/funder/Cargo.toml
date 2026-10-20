@@ -1,0 +1,35 @@
+[package]
+name = "funder"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+alloy = { version = "1", features = ["full", "signer-keystore", "node-bindings"], optional = true }
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive", "env"] }
+rpassword = { version = "7.5.4", optional = true }
+# Same build alloy already pulls in (rustls, webpki roots): no second TLS stack.
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tokio = { version = "1.53.2", features = ["macros", "rt-multi-thread", "time"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt", "registry"] }
+tracing-stackdriver = "0.10"
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+
+[features]
+default = ["evm"]
+# One feature per chain family; a build only links the families it enables.
+evm = ["dep:alloy", "dep:rpassword", "dep:reqwest"]
+
+[[test]]
+name = "fork"
+required-features = ["evm"]
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = "s"

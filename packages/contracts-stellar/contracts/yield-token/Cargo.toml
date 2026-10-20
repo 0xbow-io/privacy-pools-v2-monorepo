@@ -1,0 +1,23 @@
+[package]
+name = "yield-token"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+testutils = ["soroban-sdk/testutils", "yield-adapter/testutils"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+yield-adapter = { path = "../yield-adapter" }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+yield-adapter = { path = "../yield-adapter", features = ["testutils"] }
+
+[lints]
+workspace = true

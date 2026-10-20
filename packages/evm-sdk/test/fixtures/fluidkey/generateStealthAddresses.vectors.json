@@ -1,0 +1,21 @@
+{
+    "source": "https://github.com/fluidkey/fluidkey-stealth-account-kit/blob/main/test/generateStealthAddresses.test.ts",
+    "commit": "main",
+    "fetched_at": "2026-06-02",
+    "license": "MIT (upstream)",
+    "purpose": "Byte-for-byte interop check: our deriveStealthAddress() must produce the same stealth address as FluidKey's generateStealthAddresses() for the same (ephemeralPrivateKey, spendingPublicKey) pair. Closes CRYPTO-01 from audit_v1.md.",
+    "vectors": [
+        {
+            "label": "vector_1_first_spending_key",
+            "ephemeralPrivateKey": "0x4f80725f967e22f2597e363f977bb563de45c5e22e9c3594ebc0de8bdccf8945",
+            "spendingFromPrivateKey": "0x641f9f8b285fa1d22b009ea8c947bb6d88129b320b729d98810b40b51e8572c7",
+            "expectedStealthAddress": "0xf4126489ac2f0df6441d0b72efcc760ef0c19706"
+        },
+        {
+            "label": "vector_2_second_spending_key",
+            "ephemeralPrivateKey": "0x4f80725f967e22f2597e363f977bb563de45c5e22e9c3594ebc0de8bdccf8945",
+            "spendingFromPrivateKey": "0xef01af02e46bea24d45e909d3c219cbc5122e1cafd13f914deea1237ea0b01a6",
+            "expectedStealthAddress": "0x566953fb7a022f8c7f6421464ab700590f2b3464"
+        }
+    ]
+}

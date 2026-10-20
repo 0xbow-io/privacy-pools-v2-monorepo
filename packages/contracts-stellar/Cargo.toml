@@ -1,0 +1,48 @@
+[workspace]
+members = [
+    "contracts/*",
+    "test-contracts/*",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "BUSL-1.1"
+authors = ["0xbow.io"]
+description = "Privacy Pools V2 — Stellar/Soroban implementation"
+publish = false
+
+[workspace.dependencies]
+soroban-sdk = { version = "25.0.2", default-features = false, features = ["hazmat", "alloc"] }
+contract-types = { path = "contracts/types" }
+soroban-v2-utils = { path = "contracts/soroban-v2-utils" }
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+arithmetic_side_effects = "deny"
+cast_lossless = "deny"
+cast_possible_truncation = "deny"
+cast_possible_wrap = "deny"
+cast_precision_loss = "deny"
+cast_sign_loss = "deny"
+needless_return = "deny"
+panicking_overflow_checks = "deny"
+unwrap_used = "deny"
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true
+
+[profile.release-with-logs]
+inherits = "release"
+debug-assertions = true

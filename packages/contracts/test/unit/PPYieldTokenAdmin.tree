@@ -1,0 +1,92 @@
+UnitPPYieldTokenAdmin::setFeeBps
+├── When caller is not admin
+│   └── It should revert with OwnableUnauthorizedAccount
+├── When new fee exceeds max
+│   └── It should revert with PPYieldToken_FeeTooHigh
+├── When valid
+│   └── It updates feeBps and emits FeeUpdated
+└── It charges accrued yield at old rate then switches
+
+UnitPPYieldTokenAdmin::claimFees
+├── When given an explicit recipient
+│   └── It sweeps to the passed recipient not the admin
+└── When recipient is zero
+    └── It should revert with PPYieldToken_ZeroAddress
+
+UnitPPYieldTokenAdmin::pendingFees
+└── It remainder bearing delta charges exact floor fee
+
+UnitPPYieldTokenAdmin::claimFees
+└── It transfers a one wei fee
+
+UnitPPYieldTokenAdmin::constructor
+└── It accepts fee equal to max
+
+UnitPPYieldTokenAdmin::claimFees
+└── It zero claim moves nothing and resyncs basis
+
+UnitPPYieldTokenAdmin::admin
+└── It returns owner
+
+UnitPPYieldTokenAdmin::transferAdmin
+├── When caller is not admin
+│   └── It should revert with OwnableUnauthorizedAccount
+└── It is two step
+
+UnitPPYieldTokenAdmin::setRewardsController
+├── When caller is not admin
+│   └── It should revert with OwnableUnauthorizedAccount
+└── When valid
+    └── It updates the controller and emits RewardsControllerUpdated
+
+UnitPPYieldTokenAdmin::claimRewards
+├── When caller is not admin
+│   └── It should revert with OwnableUnauthorizedAccount
+├── When controller not set
+│   └── It should revert with PPYieldToken_RewardsControllerNotSet
+└── It forwards to controller and sends reward to recipient
+
+UnitPPYieldTokenAdmin::rescueToken
+├── When caller is not admin
+│   └── It should revert with OwnableUnauthorizedAccount
+├── When token is the asset
+│   └── It should revert with PPYieldToken_CannotRescueAsset
+├── When recipient is zero
+│   └── It should revert with PPYieldToken_ZeroAddress
+├── When valid
+│   └── It transfers the stray token and emits TokenRescued
+└── It can rescue stray shares
+
+UnitPPYieldTokenAdmin::setFeeBps
+└── Given no yield_ is a no op checkpoint
+    └── It changes the fee without accruing anything
+
+UnitPPYieldTokenAdmin::setRewardsController
+└── It overwrite emits old and new
+
+UnitPPYieldTokenAdmin::renounceOwnership
+├── It reverts for admin
+└── It reverts for non admin
+
+UnitPPYieldTokenAdmin::pause
+└── When caller is not admin
+    └── It should revert with OwnableUnauthorizedAccount
+
+UnitPPYieldTokenAdmin::unpause
+└── When caller is not admin
+    └── It should revert with OwnableUnauthorizedAccount
+
+UnitPPYieldTokenAdmin::pause
+├── It blocks deposit and mint
+├── It still allows exit and claim
+└── When already paused
+    └── It should revert with EnforcedPause
+
+UnitPPYieldTokenAdmin::unpause
+├── When not paused
+│   └── It should revert with ExpectedPause
+├── It after pause allows deposits again
+└── It restores max deposit and mint
+
+UnitPPYieldTokenAdmin::pause
+└── It zero amount deposit still reverts zero shares

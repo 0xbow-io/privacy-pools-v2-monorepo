@@ -1,0 +1,28 @@
+UnitPPRouterNative::depositExactSharesNative
+├── It succeeds and refunds excess
+├── It consumes exact quote with no refund
+├── It reverts when msg value below quote
+├── It reverts on erc20 mode router
+├── It reverts on asset mismatch
+├── It reverts on zero value
+└── It emits Deposited
+
+UnitPPRouterNative::depositExactShares
+└── It still accepts weth on native router
+
+UnitPPRouterNative::withdrawToUnderlying
+├── It delivers native with fee
+├── It combines gas funding with payout
+├── It reverts below min underlying
+└── It reverts when recipient rejects native
+
+UnitPPRouterNative::receive
+├── It reverts on direct send to native router
+└── It reverts on direct send to erc20 router
+
+UnitPPRouterNative::constructor
+└── It reverts on native mode with plain erc20 underlying
+
+UnitPPRouterNative::createRouterNative
+├── It deploys native mode router
+└── It reverts on plain erc20 underlying

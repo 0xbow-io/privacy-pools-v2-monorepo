@@ -1,0 +1,112 @@
+[
+  {
+    "chainId": 42161,
+    "chainName": "arbitrum",
+    "status": "deployed",
+    "deployedAt": "2026-08-12",
+    "deployBlock": 482544000,
+    "contracts": {
+      "PoolVault": "0x38B829a19B178fA5Defa1D379C2859bd3e5B3451",
+      "Entrypoint": "0xad0b4d5212C126B334Af11Bf4547eF4C91Bfcf44",
+      "Keystore": "0xffA62c4AE9926De3DCb46085172fCa5e6ab93509",
+      "ASPRegistry": "0xbEb83978090d4c54E9e93a7cDCEd7a41B134927D",
+      "RelaySwaps": "0xbf33ea44eed5331a97bb620e02f5910c2fa65c58",
+      "AccessRouter": "0x5F3927f24Ec20F49B3850a5b78EB2015945E57F7"
+    },
+    "roles": {
+      "DEFAULT_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "OPS_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UPGRADER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "PAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UNPAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "ENTRYPOINT_MANAGER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "POSTMAN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "DEPOSITOR_ROLE": "0xad0b4d5212C126B334Af11Bf4547eF4C91Bfcf44"
+    },
+    "rolesVerifiedAt": "2026-08-13",
+    "rolesNote": "All roles verified via hasRole()/RoleGranted logs, zero RoleRevoked events. DEPOSITOR_ROLE is held by the Entrypoint contract itself (not an EOA); every other role is held by 0x0967...dCe8, a key derived from the test private key (per poroto).",
+    "note": "Full Set B stack (2026-08-12). RelaySwaps wired to coworker's July-10 pool/entrypoint."
+  },
+  {
+    "chainId": 8453,
+    "chainName": "base",
+    "status": "deployed",
+    "deployedAt": "2026-08-12",
+    "deployBlock": 49875000,
+    "contracts": {
+      "PoolVault": "0xe10c77548c31356805597fc2c8430ab5b6dfb56a",
+      "Entrypoint": "0xe7fd6c857639e3a7ccf3cd765b5816cfc95c0890",
+      "Keystore": "0x249661aa9929f02b19dca2fb04430bad3655e893",
+      "ASPRegistry": "0x554996aee52b284f1a695c77009d67a468ee9130",
+      "RelaySwaps": "0xc59b82d4c00d181a5cfa0666170690047b32db98",
+      "AccessRouter": "0x5F14bF01171E74024D8196b8ffe00cec8098064A"
+    },
+    "roles": {
+      "DEFAULT_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "OPS_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UPGRADER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "PAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UNPAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "ENTRYPOINT_MANAGER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "POSTMAN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "DEPOSITOR_ROLE": "0xe7fd6c857639e3a7ccf3cd765b5816cfc95c0890"
+    },
+    "rolesVerifiedAt": "2026-08-13",
+    "rolesNote": "Verified via hasRole() only (public Base RPC caps eth_getLogs at a 10k-block range, so RoleGranted history wasn't scraped here). DEPOSITOR_ROLE is held by the Entrypoint contract itself (not an EOA); every other role is held by 0x0967...dCe8, a key derived from the test private key (per poroto).",
+    "note": "First RelaySwaps deployment on Base. Wired to staging V2 stack (2026-08-12). Keystore.setAuthPolicy() was broken until 2026-08-13: the deploy had linked Keystore against poseidon-solidity's PoseidonT4 singleton (0x4443338EF595F44e0121df4C21102677B142ECF0, same address as every other chain) but never actually deployed it on Base (PoseidonT3 was deployed correctly; only T4 was missed). Fixed by replaying its canonical deployment through the public deterministic-deployment-proxy (0x4e59b44847b379578588920ca78fbf26c0b4956c) — permissionless, same bytecode/address as Arbitrum, verified byte-for-byte identical post-deploy."
+  },
+  {
+    "chainId": 56,
+    "chainName": "bsc",
+    "status": "deployed",
+    "deployedAt": "2026-08-14",
+    "contracts": {
+      "PoolVault": "0xe7fd6c857639E3a7cCf3Cd765B5816Cfc95C0890",
+      "Entrypoint": "0xCaf817D6D3A7cF78fe8d3a337bB42F934E6E846b",
+      "Keystore": "0x554996AEe52b284F1a695C77009D67a468ee9130",
+      "ASPRegistry": "0xBa0211d207c808CacCB1b4e2f23367e5c1eDC673",
+      "RelaySwaps": "0x9Ee097cF663a1816C4Fc2F12BDe259563F7265C4",
+      "AccessRouter": "0x249661AA9929F02b19dCa2fb04430Bad3655E893"
+    },
+    "roles": {
+      "DEFAULT_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "OPS_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UPGRADER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "PAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UNPAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "ENTRYPOINT_MANAGER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "POSTMAN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "DEPOSITOR_ROLE": "0xCaf817D6D3A7cF78fe8d3a337bB42F934E6E846b"
+    },
+    "rolesVerifiedAt": "2026-08-14",
+    "rolesNote": "Verified via hasRole() post-deploy: POSTMAN/UPGRADER/ENTRYPOINT_MANAGER/OPS_ADMIN/DEFAULT_ADMIN all held by 0x0967...dCe8. Proxy->impl mappings confirmed via ERC1967 implementation slot.",
+    "note": "First full stack on BSC (2026-08-14). PoseidonT3+T4 singletons were absent (both, unlike Base where only T4 was missing) — deployed via the deterministic-deployment proxy BEFORE the stack (script/deploy-poseidon-singletons.sh in packages/contracts), verified byte-identical to Arbitrum. BSC USDC (0x8AC76a51...) and USDT (0x55d39832...) are 18-DECIMAL tokens — relayer configs and test amounts must not assume 6 decimals. RelaySwaps deployed 2026-08-14, wired to this pool/entrypoint, LiFi diamond + Executor approved, owner 0x0967 (all verified on-chain). RelaySwaps REDEPLOYED 2026-08-31 at 0x9Ee097cF663a1816C4Fc2F12BDe259563F7265C4: the 08-14 instance (0x5F3927f2...) decodes the pre-B2 SwapRouting layout and Panics (0x41) on current SDK payloads, which carry the swapValue/gasSwapMaxInput/gasSwapCalldata fields added by commit 5c70395d. New instance approves LiFi Diamond (constructor) + ERC20Proxy 0x5741A7Ff... (deploy script); Executor 0x2dfaDAB8... NOT yet approved on it."
+  },
+  {
+    "chainId": 10,
+    "chainName": "optimism",
+    "status": "deployed",
+    "deployedAt": "2026-08-16",
+    "contracts": {
+      "PoolVault": "0xE10c77548c31356805597Fc2c8430aB5b6Dfb56A",
+      "Entrypoint": "0xe7fd6c857639E3a7cCf3Cd765B5816Cfc95C0890",
+      "Keystore": "0x249661AA9929F02b19dCa2fb04430Bad3655E893",
+      "ASPRegistry": "0x554996AEe52b284F1a695C77009D67a468ee9130",
+      "RelaySwaps": "0x7430cc030d7eb8c83e76cd983996982c8c054204",
+      "AccessRouter": "0x5F14bF01171E74024D8196b8ffe00cec8098064A"
+    },
+    "roles": {
+      "DEFAULT_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "OPS_ADMIN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UPGRADER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "PAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "UNPAUSER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "ENTRYPOINT_MANAGER_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "POSTMAN_ROLE": "0x0967755AfA2016866D12EefB820705026842dCe8",
+      "DEPOSITOR_ROLE": "0xe7fd6c857639E3a7cCf3Cd765B5816Cfc95C0890"
+    },
+    "rolesVerifiedAt": "2026-08-16",
+    "rolesNote": "Spot-verified via hasRole(): DEFAULT_ADMIN held by 0x0967...dCe8, deployer 0xa607...FccF renounced. DEPOSITOR_ROLE held by the Entrypoint contract itself, matching every other chain.",
+    "note": "Full stack on Optimism (2026-08-16). PoseidonT3+T4 singletons already existed at the canonical addresses — no singleton deploy needed. Same contract addresses as Base: same deployer EOA, same CREATE sequence starting at nonce 1 (nonce 0 held an EIP-7702 delegation tx to 0x5a7fc11397e9a8ad41bf10bf13f22b0a63f96f6d on both chains). That delegation caps the account at 1 in-flight tx in the OP mempool, so forge deploys from this key MUST use --slow (the initial burst-send died twice mid-run; resumed via --resume --slow after back-filling the dropped tx hash/receipt in run-latest.json). USDC (0x0b2C639c...) and USDT (0x94b008aA...) are standard 6-decimal tokens. All 47 txs succeeded. RelaySwaps deployed 2026-08-16 by owner 0x0967 (funded 0.003 ETH from deployer for gas), wired to this pool/entrypoint, LiFi Diamond (0x1231DEB6...) + Executor (0x2dfaDAB8...) approved, owner 0x0967 — all verified on-chain via owner()/POOL()/ENTRYPOINT()/approvedRouters()."
+  }
+]

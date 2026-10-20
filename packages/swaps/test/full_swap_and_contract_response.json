@@ -1,0 +1,566 @@
+{
+  type: 'lifi',
+  id: '43e83c9e-f327-4934-a6e9-6ea02c1e36f0:0',
+  tool: 'near',
+  toolDetails: {
+    key: 'near',
+    name: 'NearIntents',
+    logoURI: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/near.svg'
+  },
+  action: {
+    fromToken: {
+      address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      chainId: 42161,
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+      coinKey: 'USDC',
+      logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+      priceUSD: '0.999642',
+      tags: [ 'stablecoin' ],
+      verificationStatus: 'verified',
+      verificationStatusBreakdown: [
+        {
+          provider: 'hypernative',
+          result: 'verified',
+          providerResult: 'accept'
+        }
+      ]
+    },
+    fromAmount: '100361796',
+    toToken: {
+      address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+      chainId: 10,
+      symbol: 'USDT',
+      decimals: 6,
+      name: 'USDT',
+      coinKey: 'USDT',
+      logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png',
+      priceUSD: '0.997547',
+      tags: [ 'stablecoin' ],
+      verificationStatus: 'verified',
+      verificationStatusBreakdown: [
+        {
+          provider: 'hypernative',
+          result: 'verified',
+          providerResult: 'accept'
+        }
+      ]
+    },
+    fromChainId: 42161,
+    toChainId: 10,
+    slippage: 0.001,
+    fromAddress: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c',
+    toAddress: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c'
+  },
+  estimate: {
+    tool: 'near',
+    approvalAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+    toAmountMin: '100000000',
+    toAmount: '100100101',
+    fromAmount: '100361796',
+    feeCosts: [
+      {
+        name: 'LIFI Fixed Fee',
+        description: 'Fixed LIFI fee, independent of any other fee',
+        token: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999642',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        amount: '250904',
+        amountUSD: '0.2508',
+        percentage: '0.0025',
+        included: true,
+        feeSplit: { integratorFee: '0', lifiFee: '250904' }
+      },
+      {
+        name: 'NearIntents Protocol Fee',
+        description: 'Fee taken by NearIntents for the protocol',
+        token: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999642',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        amount: '10011',
+        amountUSD: '0.0100',
+        percentage: '0.0001',
+        included: true
+      },
+      {
+        name: '1ClickSwap API Fee',
+        description: 'Fee taken by 1ClickSwap for the API call',
+        token: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999642',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        amount: '10011',
+        amountUSD: '0.0100',
+        percentage: '0.0001',
+        included: true
+      },
+      {
+        name: 'NearIntents App Fee',
+        description: 'Affiliate fee',
+        token: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999642',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        amount: '20022',
+        amountUSD: '0.0200',
+        percentage: '0.0002',
+        included: true
+      }
+    ],
+    gasCosts: [
+      {
+        type: 'SEND',
+        price: '20066000',
+        estimate: '623000',
+        limit: '3434500',
+        amount: '12501118000000',
+        amountUSD: '0.0214',
+        token: {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: 42161,
+          symbol: 'ETH',
+          decimals: 18,
+          name: 'ETH',
+          coinKey: 'ETH',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
+          priceUSD: '1715.61',
+          tags: [],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        }
+      }
+    ],
+    executionDuration: 28,
+    fromAmountUSD: '100.3259',
+    toAmountUSD: '99.8546'
+  },
+  includedSteps: [
+    {
+      id: '95cd8cb0-1cb2-4c88-b794-bbe5ffbc74dc',
+      type: 'protocol',
+      action: {
+        fromChainId: 42161,
+        fromAmount: '100361796',
+        fromToken: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999642',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        toChainId: 42161,
+        toToken: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999642',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        slippage: 0.001,
+        fromAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+        toAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+        jitoBundle: false,
+        integratorFees: {
+          feePercent: 0.0025,
+          sourceAmount: { s: 1, e: 8, c: [ 100361796 ] },
+          totalFee: { s: 1, e: 5, c: [ 250904 ] },
+          lifiFee: { s: 1, e: 5, c: [ 250904 ] },
+          integratorFee: { s: 1, e: 0, c: [ 0 ] },
+          integratorConfig: {
+            fee: 0.0025,
+            feeType: 'FIXED',
+            chainWallets: {
+              '1': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '10': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '56': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '137': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '8453': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '42161': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28'
+            }
+          }
+        },
+        integratorId: 'lifi-sdk'
+      },
+      estimate: {
+        fromAmount: '100361796',
+        toAmount: '100110892',
+        toAmountMin: '100110892',
+        tool: 'feeCollection',
+        approvalAddress: '0xC18D9E84b8687A2645447A61e52c455Dac1675e1',
+        gasCosts: [
+          {
+            type: 'SEND',
+            price: '20066000',
+            estimate: '130000',
+            limit: '2695000',
+            amount: '2608580000000',
+            amountUSD: '0.0045',
+            token: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: 42161,
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'ETH',
+              coinKey: 'ETH',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
+              priceUSD: '1715.61',
+              tags: [],
+              verificationStatus: 'verified',
+              verificationStatusBreakdown: [
+                {
+                  provider: 'hypernative',
+                  result: 'verified',
+                  providerResult: 'accept'
+                }
+              ]
+            }
+          }
+        ],
+        feeCosts: [
+          {
+            name: 'LIFI Fixed Fee',
+            description: 'Fixed LIFI fee, independent of any other fee',
+            token: {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: 42161,
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              coinKey: 'USDC',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+              priceUSD: '0.999642',
+              tags: [ 'stablecoin' ],
+              verificationStatus: 'verified',
+              verificationStatusBreakdown: [
+                {
+                  provider: 'hypernative',
+                  result: 'verified',
+                  providerResult: 'accept'
+                }
+              ]
+            },
+            amount: '250904',
+            amountUSD: '0.2508',
+            percentage: '0.0025',
+            included: true,
+            feeSplit: { integratorFee: '0', lifiFee: '250904' }
+          }
+        ],
+        executionDuration: 0
+      },
+      tool: 'feeCollection',
+      toolDetails: {
+        key: 'feeCollection',
+        name: 'Integrator Fee',
+        logoURI: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/protocols/feeCollection.svg'
+      }
+    },
+    {
+      id: '0ae2ad06-d2af-45f1-b66b-39578cc51e90',
+      type: 'cross',
+      action: {
+        fromChainId: 42161,
+        fromAmount: '100110892',
+        fromToken: {
+          address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+          chainId: 42161,
+          symbol: 'USDC',
+          decimals: 6,
+          name: 'USD Coin',
+          coinKey: 'USDC',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+          priceUSD: '0.999642',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        toChainId: 10,
+        toToken: {
+          address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+          chainId: 10,
+          symbol: 'USDT',
+          decimals: 6,
+          name: 'USDT',
+          coinKey: 'USDT',
+          logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png',
+          priceUSD: '0.997547',
+          tags: [ 'stablecoin' ],
+          verificationStatus: 'verified',
+          verificationStatusBreakdown: [
+            {
+              provider: 'hypernative',
+              result: 'verified',
+              providerResult: 'accept'
+            }
+          ]
+        },
+        slippage: 0.001,
+        fromAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+        toAddress: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c',
+        jitoBundle: false,
+        integratorFees: {
+          feePercent: 0.0025,
+          sourceAmount: { s: 1, e: 8, c: [ 100361796 ] },
+          totalFee: { s: 1, e: 5, c: [ 250904 ] },
+          lifiFee: { s: 1, e: 5, c: [ 250904 ] },
+          integratorFee: { s: 1, e: 0, c: [ 0 ] },
+          integratorConfig: {
+            fee: 0.0025,
+            feeType: 'FIXED',
+            chainWallets: {
+              '1': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '10': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '56': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '137': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '8453': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28',
+              '42161': '0x62613e6ce1Db3D3F9efd675724a5c326c2EE8E28'
+            }
+          }
+        },
+        integratorId: 'lifi-sdk',
+        destinationGasConsumption: '0'
+      },
+      estimate: {
+        tool: 'near',
+        fromAmount: '100110892',
+        toAmount: '100100101',
+        toAmountMin: '100000000',
+        gasCosts: [
+          {
+            type: 'SEND',
+            price: '20066000',
+            estimate: '250000',
+            limit: '2875000',
+            amount: '5016500000000',
+            amountUSD: '0.0086',
+            token: {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: 42161,
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'ETH',
+              coinKey: 'ETH',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
+              priceUSD: '1715.61',
+              tags: [],
+              verificationStatus: 'verified',
+              verificationStatusBreakdown: [
+                {
+                  provider: 'hypernative',
+                  result: 'verified',
+                  providerResult: 'accept'
+                }
+              ]
+            }
+          }
+        ],
+        executionDuration: 28,
+        approvalAddress: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+        feeCosts: [
+          {
+            name: 'NearIntents Protocol Fee',
+            description: 'Fee taken by NearIntents for the protocol',
+            token: {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: 42161,
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              coinKey: 'USDC',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+              priceUSD: '0.999642',
+              tags: [ 'stablecoin' ],
+              verificationStatus: 'verified',
+              verificationStatusBreakdown: [
+                {
+                  provider: 'hypernative',
+                  result: 'verified',
+                  providerResult: 'accept'
+                }
+              ]
+            },
+            amount: '10011',
+            amountUSD: '0.0100',
+            percentage: '0.0001',
+            included: true
+          },
+          {
+            name: '1ClickSwap API Fee',
+            description: 'Fee taken by 1ClickSwap for the API call',
+            token: {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: 42161,
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              coinKey: 'USDC',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+              priceUSD: '0.999642',
+              tags: [ 'stablecoin' ],
+              verificationStatus: 'verified',
+              verificationStatusBreakdown: [
+                {
+                  provider: 'hypernative',
+                  result: 'verified',
+                  providerResult: 'accept'
+                }
+              ]
+            },
+            amount: '10011',
+            amountUSD: '0.0100',
+            percentage: '0.0001',
+            included: true
+          },
+          {
+            name: 'NearIntents App Fee',
+            description: 'Affiliate fee',
+            token: {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: 42161,
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+              coinKey: 'USDC',
+              logoURI: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
+              priceUSD: '0.999642',
+              tags: [ 'stablecoin' ],
+              verificationStatus: 'verified',
+              verificationStatusBreakdown: [
+                {
+                  provider: 'hypernative',
+                  result: 'verified',
+                  providerResult: 'accept'
+                }
+              ]
+            },
+            amount: '20022',
+            amountUSD: '0.0200',
+            percentage: '0.0002',
+            included: true
+          }
+        ]
+      },
+      tool: 'near',
+      toolDetails: {
+        key: 'near',
+        name: 'NearIntents',
+        logoURI: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/near.svg'
+      }
+    }
+  ],
+  integrator: 'lifi-sdk',
+  stepSimulation: {
+    status: 'not-attempted',
+    gasSource: 'tool',
+    disabledReason: 'integrator_not_allowed'
+  },
+  transactionRequest: {
+    value: '0x0',
+    to: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+    data: '0x3110c7b9000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000002200000000000000000000000000000000000000000000000000000000000000420e58b9f3d1d25d0fc58aca3615a6e9fe0dd778d5e58fd71dfbdb303234c95fba7000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e5831000000000000000000000000cf38221886f36522da520669acc24e32ce5e4f2c0000000000000000000000000000000000000000000000000000000005f7922c000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000046e6561720000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000086c6966692d73646b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000c18d9e84b8687a2645447a61e52c455dac1675e1000000000000000000000000c18d9e84b8687a2645447a61e52c455dac1675e1000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e5831000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e58310000000000000000000000000000000000000000000000000000000005fb664400000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a4332d746b000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e583100000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000c06ebbefd94032b85424d51906e2a335efae264b000000000000000000000000000000000000000000000000000000000003d41800000000000000000000000000000000000000000000000000000000000000000000000000000000cf38221886f36522da520669acc24e32ce5e4f2c00000000000000000000000012efe2265377a47bdc3348f049e121fccdbc7a2930f015df7c5b19bc5c178d6b76d914c1bb3e0091a240469d870f6501b6f03a16000000000000000000000000000000000000000000000000000000006a336f4f0000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000cf38221886f36522da520669acc24e32ce5e4f2c00000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000416197a8d58185c790cbd1d7fc503d91a83a40502227f904c2bbc27e31de14df89586cf5f367b9bb082a60a0f38f4d9d4303e305abc269cfa0415fd7e9b56d21d31b00000000000000000000000000000000000000000000000000000000000000',
+    from: '0xcF38221886f36522dA520669ACc24E32cE5E4f2c',
+    chainId: 42161,
+    gasPrice: '0x1322ed0',
+    gasLimit: '0x346804'
+  },
+  transactionId: '0xe58b9f3d1d25d0fc58aca3615a6e9fe0dd778d5e58fd71dfbdb303234c95fba7'
+}

@@ -1,0 +1,88 @@
+%% Full withdraw-and-swap flow (same-chain and cross-chain) — every participant.
+%% Phases: prepared quote → relay → on-chain execution → settlement.
+%% Render: mmdc -i withdraw-swap.mmd -o withdraw-swap.svg  (or any mermaid viewer)
+
+sequenceDiagram
+    autonumber
+    actor User as User / Integrator
+    participant WAS as SDK<br/>PoolSessionWithdrawAndSwap
+    participant Core as SDK<br/>TransactOrchestrator
+    participant EPI as SDK<br/>EntrypointInteractor (RPC)
+    participant LiFiAPI as LiFi API<br/>(off-chain quotes)
+    participant Relayer as Relayer service<br/>(quote + relay endpoints)
+    participant RS as RelaySwaps<br/>contract
+    participant Pool as PrivacyPool /<br/>PoolVault
+    participant EP as Entrypoint<br/>contract
+    participant Diamond as LiFi Diamond<br/>(on-chain executor)
+    actor Recipient as Recipient<br/>(source or destination chain)
+
+    %% ============ PHASE 1 — prepared quote ============
+    rect rgb(40, 40, 60)
+        Note over User,Relayer: Phase 1 — prepareSwapQuote()
+        User->>WAS: prepareSwapQuote(amount, tokenId, outputToken,<br/>recipientAddress, toChainId?, fallbackAddress?, dustRecipient?)
+        Note over WAS: cross-chain (toChainId ≠ relayer chain):<br/>fallbackAddress required, nativeGas forbidden,<br/>routing recipient = address(0) sentinel,<br/>dustRecipient defaults to relayer
+        WAS->>EPI: getAssetConfig(tokenId)
+        EPI-->>WAS: maxRelayFee
+        WAS->>Relayer: getSwapQuote(commit: false)
+        Relayer-->>WAS: feeAmount
+        Note over WAS: fee bounds: RelayFeeExceedsMax / fee < amount
+        WAS->>LiFiAPI: getSwapQuote(netSwapAmount = amount - fee,<br/>toAddress: recipient, toFallbackAddress)
+        LiFiAPI-->>WAS: transactionData, transactionTo,<br/>approvalAddress, toAmountMin, route echo
+        Note over WAS: route echo cross-check (SwapQuoteMismatch)
+        WAS->>Relayer: getSwapQuote(commit: true, swapCalldata, swapTarget,<br/>approvalAddress, minOutputAmount: toAmountMin same-chain / 0 cross-chain)
+        Note over Relayer: zEvmSwapQuoteRequest schema:<br/>swapCalldata + swapTarget required when commit,<br/>zero-recipient ⇒ nativeGas = 0 & minOutputAmount = 0
+        Note over Relayer: ABI-encode RelaySwapRouting (11 fields,<br/>embeds full swapCalldata), sign with expiration
+        Relayer-->>WAS: feeCommitment { data, amountSent, expiration, signature }
+        Note over WAS: fee re-check, decodeRelaySwapRouting ONCE:<br/>swapCalldata byte-equality, recipient, fallbackAddress,<br/>outputToken, dustRecipient, feeAmount, minOutputAmount,<br/>nativeGas, swapTarget, approvalAddress
+        WAS-->>User: PreparedSwapQuote { selectedQuote, swapCalldata,<br/>minOutputAmount, destinationMinOutputAmount, feeAmount,<br/>swapTarget, approvalAddress, dustRecipient, toChainId }
+    end
+
+    %% ============ PHASE 2 — relay ============
+    rect rgb(60, 60, 40)
+        Note over User,Relayer: Phase 2 — relayWithdrawAndSwap()
+        User->>WAS: relayWithdrawAndSwap(prepared quote fields)
+        Note over WAS: defense-in-depth re-validation:<br/>relayer chain === pool chain, decode routing,<br/>swapCalldata byte-equality, amountSent = amount + fee,<br/>field-by-field routing check (+ optional swapTarget /<br/>approvalAddress / dustRecipient expecteds);<br/>cross-chain: zero recipient, minOutputAmount = 0, nativeGas = 0
+        WAS->>Core: prepareTransact(processor: RelaySwaps,<br/>data: signed routing, amountOut: amountSent)
+        Note over Core: withdrawal ZK proof (~30-60s) —<br/>transact circuit, context hash commits to<br/>processor + routing (incl. full swapCalldata)
+        Core-->>WAS: proof, noteData, spentNotes, changePendingNotes
+        WAS->>Relayer: POST /relay-swap { proof, signedSwapCommitment, noteData }
+        Note over Relayer: verify commitment signature + expiration,<br/>commitment asset === proof asset,<br/>amountOut === amountSent, fee ≤ amountOut,<br/>decode routing: feeRecipient = relayer's,<br/>dustRecipient ≠ 0, zero-recipient invariants
+    end
+
+    %% ============ PHASE 3 — on-chain (source chain) ============
+    rect rgb(40, 60, 60)
+        Note over Relayer,Recipient: Phase 3 — on-chain execution (source chain, single tx)
+        Relayer->>RS: execute(proof, transactParams, noteData) { value: nativeGas }
+        Note over RS: decode SwapRouting from proof-bound data,<br/>msg.value == nativeGas,<br/>recipient == address(0) ⇒ require nativeGas = 0 and<br/>minOutputAmount = 0 (WithoutRecipient errors)
+        RS->>EP: assets(token).maxRelayFee
+        EP-->>RS: maxRelayFee
+        Note over RS: feeAmount ≤ maxRelayFee (when nonzero)
+        RS->>Pool: transact(proof, transactParams, noteData)
+        Note over Pool: verify ZK proof: nullifiers, commitments,<br/>context hash (locks processor + routing + calldata)
+        Pool-->>RS: transfer withdrawn tokens (amountSent)
+        RS->>Relayer: pay feeAmount in input token (feeRecipient)
+        Note over RS: approve swapTarget for amount - fee<br/>(approvalAddress), then call with swapCalldata
+        RS->>Diamond: swapCalldata
+        alt same-chain swap
+            Diamond->>Diamond: swap input → output token
+            Diamond->>Recipient: output tokens
+            Note over RS: recipient balance-delta check:<br/>delivered ≥ minOutputAmount, else revert
+            RS->>Recipient: forward nativeGas (when set)
+        else cross-chain swap
+            Diamond->>Diamond: swap/bridge on source chain
+            Note over Diamond: destination executor swaps + delivers<br/>to recipient with LiFi minAmountOut<br/>(proof-bound calldata); bridge failure →<br/>bridged token refunded to fallbackAddress
+            Diamond-->>Recipient: output tokens on destination chain (async)
+        end
+        Note over RS: sweep dust (balance deltas only) → dustRecipient,<br/>reset approval to 0
+        RS-->>Relayer: tx success
+        Relayer-->>WAS: txHash
+    end
+
+    %% ============ PHASE 4 — settlement ============
+    rect rgb(50, 40, 60)
+        Note over WAS,User: Phase 4 — settlement
+        WAS->>WAS: waitForTransactionReceipt(txHash)
+        Note over WAS: persistNoteUpdates: inputs → SPENT,<br/>change note tracked
+        WAS-->>User: TxReceipt
+        Note over User: cross-chain: poll getSwapStatus()<br/>until DONE / FAILED
+    end

@@ -1,0 +1,17 @@
+{
+    "name": "@privacy-pools-v2/relayer-smoke",
+    "version": "1.0.1",
+    "description": "Read-only smoke tests against a live, already-deployed relayer instance",
+    "private": true,
+    "license": "GPL-3.0-or-later",
+    "devDependencies": {
+        "@tsconfig/node22": "catalog:shared",
+        "@types/node": "catalog:shared",
+        "typescript": "catalog:shared",
+        "vitest": "catalog:shared",
+        "vitest-ctrf-json-reporter": "^0.0.3"
+    },
+    "scripts": {
+        "test": "vitest run"
+    }
+}

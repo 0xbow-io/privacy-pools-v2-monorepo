@@ -1,0 +1,63 @@
+Privacy Pools v2 - Licensing
+Copyright (c) 2025-2026 0xbow
+
+This repository contains components under three different licenses. The
+full text of each license is in the LICENSE file of the directory it covers.
+
+-----------------------------------------------------------------------------
+
+Business Source License 1.1 (SPDX: BUSL-1.1)
+
+  packages/contracts/          EVM core contracts
+  packages/contracts-stellar/  Stellar (Soroban) core contracts
+  packages/swaps/              swap contracts and their test tooling
+
+GNU General Public License v3.0 or later (SPDX: GPL-3.0-or-later)
+
+  packages/circuits/           zero-knowledge circuits and their generated
+                               artifacts (the circuits include circomlib,
+                               which is licensed under GPL-3.0)
+  packages/relayer/            relayer and its services (they run the
+                               GPL-3.0 snarkjs prover in-process)
+
+MIT License (SPDX: MIT)
+
+  packages/core-sdk/           core SDK
+  packages/evm-sdk/            EVM SDK
+  packages/stellar-sdk/        Stellar SDK
+  packages/mock-asp/           development ASP
+  packages/e2e-suite/          end-to-end test suite
+  apps/                        sample applications
+
+  All other files in this repository (documentation, scripts and
+  configuration) are also licensed under the MIT License; its text is
+  reproduced below.
+
+A file whose SPDX-License-Identifier header names a different license than
+its directory is licensed under the license in its header.
+
+Third-party components that keep their own licenses are listed in NOTICE.
+
+-----------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2025-2026 0xbow
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

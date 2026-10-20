@@ -1,0 +1,30 @@
+UnitPPRouterDeposit::depositExactShares
+├── It succeeds after rate rise
+├── It with vetting fee splits value and fee
+├── It reverts on asset mismatch
+├── It reverts on zero value
+├── It emits Deposited
+├── It reverts on insufficient wrap
+├── It reverts if entrypoint underpulls
+└── It reverts on non canonical token id
+
+UnitPPRouterDeposit::slippageBound
+└── It reverts then same proof retries
+
+UnitPPRouterDeposit::skim
+├── It sweeps dust to recipient
+└── It emits on sweep no op when empty
+
+UnitPPRouterDeposit::constructor
+├── It reverts on zero address
+└── It reverts on zap asset mismatch
+
+UnitPPRouterDeposit::quote
+└── It matches preview mint plus buffer
+
+UnitPPRouterDeposit::vettingFee
+├── It 1bps
+└── It 2000bps
+
+UnitPPRouterDeposit::slippage
+└── It one wei boundary

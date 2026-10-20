@@ -1,0 +1,25 @@
+[package]
+name = "yield-blend-adapter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+testutils = ["soroban-sdk/testutils"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+yield-adapter = { path = "../yield-adapter" }
+blend-contract-sdk = "=2.25.0"
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+blend-contract-sdk = { version = "=2.25.0", features = ["testutils"] }
+yield-token = { path = "../yield-token", features = ["testutils"] }
+
+[lints]
+workspace = true
