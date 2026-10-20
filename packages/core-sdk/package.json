@@ -1,6 +1,6 @@
 {
   "name": "@privacy-pools-v2/core-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Privacy Pools V2 chain-agnostic SDK core — protocol logic, crypto, note/keystore management, and generic contract-interactor abstractions shared by evm-sdk and stellar-sdk",
   "license": "MIT",

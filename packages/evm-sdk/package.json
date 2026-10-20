@@ -1,6 +1,6 @@
 {
   "name": "@privacy-pools-v2/evm-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Privacy Pools V2 EVM-specific SDK — viem/LiFi-backed chain adapters, pool sessions, and stealth-address module built on @privacy-pools-v2/core-sdk",
   "license": "MIT",

@@ -2,6 +2,10 @@
 
 All notable changes to `@privacy-pools-v2/core-sdk` are documented in this file.
 
+## 1.0.2 — 2026-10-20
+
+- `NativeDestinationDepositUnsupported` is now a runtime export of the public barrel. It was exported type-only, so it was `undefined` in the built dist and an `instanceof` check against it was always false. A test now fails if any error class under `src/errors/` is not a runtime export.
+
 ## 1.0.1 — 2026-10-20
 
 - `DEFAULT_CIRCUIT_MANIFEST` now points at the trusted-setup ceremony bundle (root `QmWPCQmvkJMtFEyQ94MU2CFniH6u1sbq1AQYDjj4HFpWDX`). The proving and verification key CIDs and digests changed; the wasm entries are unchanged. Proofs built with the 1.0.0 manifest stop verifying once a chain's verifiers are rotated.

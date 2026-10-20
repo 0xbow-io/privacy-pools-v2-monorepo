@@ -2,6 +2,13 @@
 
 All notable changes to the `privacy-pools-v2` monorepo are documented in this file.
 
+## 1.0.2 — 2026-10-20
+
+SDK fix.
+
+- `core-sdk` / `evm-sdk`: `NativeDestinationDepositUnsupported` is a runtime export again, so `instanceof` checks against it work. Ships as `@0xbow/privacy-pools-v2-sdk@1.0.2`.
+- The other workspace packages stay at `1.0.1`.
+
 ## 1.0.1 — 2026-10-20
 
 Trusted-setup ceremony keys.

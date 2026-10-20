@@ -44,6 +44,10 @@ survives.
   traps in one feature — `BatchWithdrawOrchestrator`, then `PAYOUT_ROUTING_ABI`/`_ARRAY_ABI`, then
   all six `BatchWithdraw` error classes — each found only when the next consumer hit an
   `instanceof … is not callable` at runtime. Surfaced by `agents/output/audit/AUDIT_batch_full.md` GAP-1.)
+  (cross-chain swap: `NativeDestinationDepositUnsupported` shipped type-only, so a frontend's
+  `instanceof` was always false and evm-sdk's `.rejects.toThrow(X)` assertions passed on any
+  error, `X` being `undefined`. Error classes now have an exhaustive guard: core-sdk's
+  `publicBarrel.test.ts` fails on any class under `src/errors/` that is not a runtime export.)
 
 ## C. Testing (the bar, per `CLAUDE.md` + `docs/TESTING_GUIDE.md`)
 
