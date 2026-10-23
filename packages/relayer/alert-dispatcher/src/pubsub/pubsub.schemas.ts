@@ -19,6 +19,22 @@ export const zAlertEvent = z.object({
 
 export type AlertEvent = z.infer<typeof zAlertEvent>;
 
+/**
+ * The on-demand report wire format. HAND-MIRRORED from `ReportEvent` in the relayer
+ * (packages/relayer/relayer/src/report/report-publisher.ts) — the two packages share no dependency.
+ * Drift is guarded by the shared fixture packages/relayer/alert-fixtures/report-events.json, which
+ * both sides' specs check (see pubsub.schemas.spec.ts here and report-publisher.spec.ts there).
+ */
+export const zReportEvent = z.object({
+    command: z.enum(["native_asset_balances", "current_profit_margins"]),
+    status: z.enum(["ok", "error"]),
+    text: z.string(),
+    requestId: z.string().min(1),
+    timestamp: z.string().datetime(),
+});
+
+export type ReportEvent = z.infer<typeof zReportEvent>;
+
 /** Standard Pub/Sub push subscription envelope shape (same as dust-rescue-service). */
 export const zPubSubPushEnvelope = z.object({
     message: z.object({

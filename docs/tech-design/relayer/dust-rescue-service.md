@@ -341,8 +341,11 @@ the marker in both directions), so `priceForRescue()` cannot read the provider o
 dust asset itself. It borrows the destination chain's *reference stablecoin's* configured
 quoter instead (`chainConfig.asset(REFERENCE_STABLECOIN_BY_CHAIN_ID[chainId].address).quoter`)
 — that provider must be able to price the stablecoin leg of this exact pair anyway. If
-the reference stablecoin is not in the chain's `supported_assets`, pricing throws before
-any provider call. Non-native dust assets keep using their own `quoter` unchanged. A companion fix in
+the reference stablecoin is not in the chain's `supported_assets`, or its quoter is not a
+USD-pricing provider (only Curve and CowSwap are; `Uniswap` is not — Optimism, and since
+2026-10-23 Mainnet, Arbitrum and Base too, so no prod chain currently qualifies), pricing
+throws before any provider call. Non-native dust assets keep
+using their own `quoter` unchanged. A companion fix in
 `curve_quote_obtention.ts`'s `validateAgainstHistoricRate()` early-returns when
 `input_token.address` equals the chain's configured anchor: on Mainnet the anchor *is*
 WETH, so after the substitution above the historic-manipulation check would run as
@@ -356,7 +359,9 @@ is bounded to the discretionary `minWorthUsdMicros` ($2) worth-it gate — `Wei`
 authoritative for the value actually deposited (see the worth-it-gate discussion above),
 so a manipulated rate can only flip whether small dust gets auto-rescued, never move real
 funds. Net effect: native-ETH dust-rescue pricing via Curve works end-to-end on Mainnet
-(chainId 1); other chains, and CowSwap-quoted chains in general, still hit the gap
+(chainId 1) *when Mainnet's reference stablecoin names Curve* — prod config does not
+(CowSwap since 1.9.0, `Uniswap` since 2026-10-23, so it currently throws per the gap
+below); other chains, and CowSwap-quoted chains in general, still hit the gap
 described below until they get a `WRAPPED_NATIVE_BY_CHAIN_ID` entry (CowSwap itself was
 confirmed not viable for this case regardless — its orderbook API rejects native ETH as a
 sell token outright).
@@ -546,17 +551,28 @@ already uses, just mounted as a file instead of an env var. See the package READ
   re-verified on-chain (Optimism's checked 2026-08-29: symbol `USDC`, 6 dp, native — not
   bridged `USDC.e`). Still a real limitation if a destination chain is ever added without a
   matching entry — registration fails loudly for a `dustRescue` opt-in targeting it,
-  rather than degrading silently. Note the Optimism entry is only ever reached via
+  rather than degrading silently. Note all four entries are currently only ever reached via
   `priceForRescue`'s same-token → trivial-$1 short-circuit (dust asset == the reference
-  stablecoin): Optimism's dust assets are all `Uniswap`-quoted and Uniswap is not wired as
-  a USD-pricing provider, so a non-USDC dust output on Optimism still has no pricing path.
+  stablecoin): Optimism's dust assets are all `Uniswap`-quoted, and since 2026-10-23 so
+  is every other prod asset that was `Cowswap`-quoted — Mainnet USDC/USDT, Arbitrum
+  USDC/USDT0 (direct V3 WETH 0.05% TWAP), and Base USDC/USDT (USDT priced 1:1 as USDC) —
+  moved after CoW's orderbook API stopped answering the prod relayer. No prod asset names
+  `Cowswap` or `Curve` any more. Uniswap is not wired as a USD-pricing provider, so a
+  non-USDC dust output on any of Mainnet, Optimism, Arbitrum or Base (ETH/WETH via the
+  borrowed stablecoin quoter, USDT/USDT0 via its own) throws at pricing; USDC dust still
+  prices. Accepted known gap, no code fix: the failure is non-fatal — caught in
+  `relaySwap()` after the on-chain relay-swap, logged and alerted at `warn` (dedupKey
+  `dustRescue.<sourceChainId>`), surfaced as `dustRescueWarning`, and the rescue needs a
+  manual replay. Restoring it needs either CoW coming back (flip those quoters back) or
+  wiring Uniswap as a USD-pricing provider.
 - **Curve pool coverage for the dust-asset/stablecoin pair isn't guaranteed** — no
   multi-hop routing, so an asset without a *direct* Curve pool against the reference
   stablecoin fails pricing. Narrowed 2026-08-27: this no longer applies to native-ETH
   dust on Mainnet specifically — `WRAPPED_NATIVE_BY_CHAIN_ID` (in
   `DustRescuePricingService`) substitutes WETH's address for pricing purposes wherever a
   chain has an entry, currently just chainId 1, and Curve's WETH-anchored pool covers it
-  (verified live: real quotes fetched successfully). Any other chain, or any dust asset
+  (verified live: real quotes fetched successfully) — moot in current prod config, where no
+  asset names `Curve` (see the bullet above). Any other chain, or any dust asset
   without a direct Curve pool against the reference stablecoin (native or otherwise), still
   hits this gap. CowSwap-quoted chains can't be fixed the same way for native assets at
   all — its orderbook API rejects native ETH as a sell token outright
@@ -570,6 +586,7 @@ already uses, just mounted as a file instead of an env var. See the package READ
 
 | Version | Change |
 | --- | --- |
+| 1.17.0 | 2026-10-23 — Every remaining `Cowswap`-quoted prod asset moved to `Uniswap` after CoW's orderbook API stopped answering the prod relayer: Mainnet (1) USDC/USDT and Arbitrum (42161) USDC/USDT0 (new `UNISWAP_V3_POOLS[1]`/`[42161]`, V3 WETH 0.05% direct TWAP), Base (8453) USDC/USDT (V3 WETH/USDC 0.05% TWAP, USDT 1:1 as USDC). No prod asset names `Cowswap` or `Curve` any more. Consequence here, accepted as a known gap (no code fix): Uniswap isn't a USD-pricing provider, so ETH/WETH/USDT/USDT0 dust now throws in `priceForRescue()` on Mainnet, Arbitrum and Base like Optimism's already did; USDC dust still prices via the same-token $1 short-circuit. Failure stays non-fatal (`dustRescueWarning` + `warn` alert, manual replay); restoring it needs CoW back (flip quoters) or Uniswap wired as a USD-pricing provider. "Which provider prices it" (incl. the Mainnet-Curve net-effect sentence), "Reference stablecoin coverage" and "Curve pool coverage" re-synced. |
 | 1.16.2 | 2026-10-16 - Doc-only pointer: the swallowed-failure error log in `relaySwap()` now also carries the `alert: true` marker and pages operators at severity `warn` via alert-dispatcher (see alert-dispatcher.md); no change to response/`dustRescueWarning` behavior. |
 | 1.16.1 | 2026-10-02 — Doc-only. SDK-level `dustRescue` requests now carry `destinationChainType` alongside `destinationChainId` (see `docs/tech-design/core-sdk/withdraw-and-swap.md` §Cross-Chain Reshield — closes a chain-id-collision gap now that more than one chain type exists). This service is unaffected: every job it processes is implicitly EVM (LiFi only bridges between EVM chains). No code change. |
 | 1.16.0 | 2026-10-02 — Security fix: dust #1 forwarding's `quoteRefusalReason` also refuses a quote whose `approvalAddress` or `transactionTo` is LiFi's Executor or whose `transactionData` calls an Executor entry point (evm-sdk `isLiFiExecutor` / `isLiFiExecutorCall`). The Executor is on `RelaySwaps.approvedRouters` but runs arbitrary calls, so an allowlisted quote could still move or expose the signer's swept dust. An `erc20Proxy()` probe failure other than a revert or empty return aborts the forward; the dust stays put. |

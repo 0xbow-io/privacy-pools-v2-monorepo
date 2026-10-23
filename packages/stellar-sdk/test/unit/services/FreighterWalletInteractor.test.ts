@@ -32,6 +32,7 @@ function createMockRPC(overrides: Partial<IStellarRPCInteractor> = {}): IStellar
         getLatestLedger: async () => "0x0" as Hash,
         getFinalizedBlockNumber: async () => ({ status: "finalized" as const, blockNumber: "0x0" as Hash }),
         getAccount: async () => ({ publicKey: "", sequence: "0" }),
+        getNativeBalance: async () => 0n,
         simulateRead: async () => undefined,
         buildTransaction: async () => "",
         buildTransactionWithAuth: vi.fn(),

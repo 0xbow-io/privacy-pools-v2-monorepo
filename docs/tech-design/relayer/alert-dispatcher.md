@@ -17,7 +17,10 @@ outage does not produce a message storm.
 balance polling, no RPC access and no signer key. It only forwards what the relayer already
 decided to log. Anything the relayer does not log as `turbo` (or mark with `alert: true`) cannot
 page. Email is not built in v1 (the channel seam exists, see "Telegram delivery and the channel
-seam").
+seam"). This boundary still holds for the on-demand reports feature
+([relayer-reports.md](relayer-reports.md)): that feature's dispatcher-side piece
+(`ReportsController`, `POST /pubsub/reports`) only formats and sends already-gathered text — all
+chain access lives on the relayer, and the dispatcher's ingress gains no new public route at all.
 
 ```mermaid
 sequenceDiagram
@@ -55,7 +58,8 @@ packages/relayer/alert-dispatcher/
   src/main.ts                         Nest bootstrap (PORT, default 8080)
   src/app.module.ts                   wires config, cooldown store, CHANNELS array
   src/pubsub/pubsub.controller.ts     POST /pubsub/alerts
-  src/pubsub/pubsub.schemas.ts        zAlertEvent, zPubSubPushEnvelope
+  src/pubsub/reports.controller.ts    POST /pubsub/reports (relayer-reports.md)
+  src/pubsub/pubsub.schemas.ts        zAlertEvent, zReportEvent, zPubSubPushEnvelope
   src/cooldown/                       IAlertCooldownStore + FirestoreAlertCooldownStore
   src/channel/                        IAlertChannel + TelegramChannel
   src/config/                         env-var-only config (zod-validated at boot)
@@ -133,6 +137,28 @@ The reading can be up to one tx's gas high (gas leaves the balance only once min
 balance read logs a plain, non-alert `warn`; the check never throws or delays the relay. Refilling
 the signer is the funder job's concern (`packages/relayer/funder`), not this alert's.
 
+**Quote operator-fault call sites.** Operator-side quote failures page at severity `warn`, not
+`turbo`, so the quote keeps answering. Each call site passes `{ alert: true, dedupKey }`:
+- `QuoteDeadlineInterceptor` (`quote/quote-deadline.interceptor.ts`): the 503 "Quote deadline
+  exceeded" path (upstream RPC unresponsive) uses `dedupKey` `quote.deadline.<chainType>.<chainId>`,
+  built from the route params, never from free text. The chain id is normalized with `Number()`, as
+  routing does, so `8453`, `08453` and `0x2105` share one cooldown key.
+- `RateProviderService.quote` (`rate_provider/rate_provider.service.ts`): when a rate provider fails
+  to quote (CowSwap outage or rate limit, Curve oracle fault, unpriced asset), the `BadRequest` is
+  preceded by `{ alert: true, dedupKey: "quote.rateProvider.<provider>.<chainId>" }`. Keyed per
+  provider and chain, never per token or message.
+- `calculateFlatFee` / `calculateBpsFee` / `calculateExactBpsFee` (`quote/evm/fee.calculations.ts`)
+  take a `FeeAlertContext` (logger + chainId). The "Asset not relayable" throw (maxRelayFee below
+  relay cost) logs `quote.notRelayable.<chainId>` before the `BadRequest`.
+- `EvmQuoteService` (`quote/evm/evm.quote.service.ts`), before the `BadRequest` throw, for three
+  operator-config faults: `quote.underlyingMisconfigured.<chainId>` (quoter `Underlying` with no
+  underlying configured, or an underlying that is itself a share token), `quote.previewRedeemZero.<chainId>`
+  (`previewRedeem(1 share)` returned 0), and `quote.nativeAssetMissing.<chainId>` (no native asset
+  configured).
+
+Client-input 4xx errors (amount too small, fee over `maxRelayFee`, recipient missing) deliberately
+do not page. They are the caller's fault, not the operator's.
+
 **Publisher (`logger/alert-publisher.ts`).** A plain module, not a Nest provider (it runs with
 no DI container, e.g. in boot validators). Topic from `RELAYER_ALERTS_PUBSUB_TOPIC`, default
 `relayer-alerts`. All errors are swallowed and reported with plain `console.error`, never through
@@ -163,6 +189,10 @@ no app-level JWT check, same as dust-rescue-service.
 | 204 | Handled: paged, or suppressed by the cooldown. A suppressed message must not be retried. |
 | 400 | Malformed envelope, bad base64/JSON, or invalid `AlertEvent`. Permanently undeliverable. |
 | 5xx | A channel failed. The cooldown claim is rolled back and Pub/Sub redelivers. |
+
+A sibling route, `POST /pubsub/reports`, delivers on-demand report results (the reverse direction,
+triggered by a Telegram command on the relayer rather than a relayer log line) — same envelope
+handling, no cooldown involved. See [relayer-reports.md](relayer-reports.md).
 
 ## Cooldown Design
 
@@ -198,6 +228,11 @@ the bot token.
 provides a `CHANNELS` array containing only Telegram in v1; adding email means implementing the
 interface and adding it to that array behind its own enable flag. The route, cooldown and event
 schema do not change.
+
+`TelegramChannel.send()`'s Bot API call is factored into a private `sendText(text)`; `sendReport()`
+(used by `ReportsController`, [relayer-reports.md](relayer-reports.md)) calls the same `sendText`
+with `formatReport()`'s output instead of `formatAlert()`'s — same HTML-escape-and-truncate shape,
+a status prefix instead of a severity badge, no cooldown involved.
 
 ## Language Decision Record
 
@@ -248,6 +283,8 @@ expectation, not a measurement.
 - Cooldown window (900 s) is untuned against real on-call experience.
 - Event schema is hand-mirrored; guarded only by the shared fixture test.
 - Alerting path is implicit via the transport (a `turbo` log pages without a call-site marker).
+- Quote alerts cover only the EVM paths listed above. Not covered: all Stellar quote-service
+  `BadRequest` throws. Those stay log-only (or silent) until added.
 - Poison messages (400) are not dead-lettered unless the subscription is configured to do so.
 
 ---
@@ -256,5 +293,10 @@ expectation, not a measurement.
 
 | Version | Change |
 | --- | --- |
+| 1.5.1 | 2026-10-23 - Deadline alert key normalizes the route chain id with `Number()` (as routing does), so equivalent spellings share one cooldown key. |
+| 1.5.0 | 2026-10-23 - Rate-provider quote failures (`quote.rateProvider.<provider>.<chainId>`) now page at `warn`, so CowSwap outages and rate limits are visible to operators. |
+| 1.4.0 | 2026-10-23 - `capFee` "Asset not relayable" (`quote.notRelayable.<chainId>`) now pages at `warn`: the fee helpers in `quote/evm/fee.calculations.ts` take a `FeeAlertContext` (logger + chainId). Stellar throws still do not page. |
+| 1.3.0 | 2026-10-23 - Quote operator-fault call sites: `QuoteDeadlineInterceptor` 503 path (`quote.deadline.<chainType>.<chainId>`) and three `EvmQuoteService` config faults (`quote.underlyingMisconfigured`, `quote.previewRedeemZero`, `quote.nativeAssetMissing`) page at `warn`; client-input 4xx and `capFee` / Stellar throws do not. |
+| 1.2.0 | 2026-10-22 - On-demand reports (reverse direction): `ReportsController` (`POST /pubsub/reports`), `zReportEvent`, `TelegramChannel.sendReport()`/`formatReport()`. Full design in [relayer-reports.md](relayer-reports.md); this service's own ingress and threat model are unchanged. |
 | 1.1.0 | 2026-10-18 - Low-balance call site: `EVMChainService.broadcast()` fire-and-forget `checkSignerBalance()` pages (`warn`, `dedupKey` `relayer.lowBalance.<chainId>`) when the signer's native balance is below `LOW_BALANCE_ALERT_WEI_EVM_<id>` (per chain only, wei, unset = off). |
 | 1.0.0 | 2026-10-16 - Initial design and implementation: relayer AlertTransport + publisher, `alert-dispatcher` Cloud Run service (Pub/Sub push, Firestore cooldown, Telegram channel), shared wire-format fixture, deploy workflow. |

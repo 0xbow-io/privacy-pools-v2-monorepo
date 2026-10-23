@@ -31,7 +31,7 @@ interface UniswapV3PoolConfig {
 // for the full verification (addresses, liquidity, implied price). A pair missing here
 // throws explicitly below rather than reusing an unrelated pool for a token it was never
 // verified to price.
-const UNISWAP_V3_POOLS: Partial<Record<number, UniswapV3PoolConfig[]>> = {
+export const UNISWAP_V3_POOLS: Partial<Record<number, UniswapV3PoolConfig[]>> = {
     4114: [
         {
             // wcBTC / USDT.e, 0.3% fee tier. See pool_addresses.md.
@@ -109,6 +109,15 @@ const UNISWAP_V3_POOLS: Partial<Record<number, UniswapV3PoolConfig[]>> = {
             anchor: { address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", ticker: "WBNB", decimals: 18 },
             pricedAs: { address: "0x55d398326f99059fF775485246999027B3197955", ticker: "USDT", decimals: 18 },
         },
+        {
+            // U (United Stables), pegged 1:1 to USDT through the USDT / WBNB 0.05% pool. BSC
+            // Uniswap V3 has U/WBNB (0.3%) and U/USDT (0.01%) pools, but both held zero
+            // liquidity when checked 2026-10-21, so they cannot price it. See pool_addresses.md.
+            poolAddress: "0x6fe9E9de56356F7eDBfcBB29FAB7cd69471a4869",
+            inputToken: { address: "0xcE24439F2D9C6a2289F741120FE202248B666666", ticker: "U", decimals: 18 },
+            anchor: { address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", ticker: "WBNB", decimals: 18 },
+            pricedAs: { address: "0x55d398326f99059fF775485246999027B3197955", ticker: "USDT", decimals: 18 },
+        },
     ],
     // Robinhood Chain — canonical Uniswap V3 (factory 0x1f7d7550B1b028f7571E69A784071F0205FD2EfA),
     // WETH anchor. Verified on-chain 2026-10-14: nonzero liquidity, working observe([900,0])
@@ -119,6 +128,62 @@ const UNISWAP_V3_POOLS: Partial<Record<number, UniswapV3PoolConfig[]>> = {
             poolAddress: "0x52e65B17fB6E5BA00Ed806f37Afcd2DaA50271Ca",
             inputToken: { address: "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168", ticker: "USDG", decimals: 6 },
             anchor: { address: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73", ticker: "WETH", decimals: 18 },
+        },
+    ],
+    // Base — canonical Uniswap V3 (factory 0x33128a8fC17869897dcE68Ed026d694621f6FDfD), WETH
+    // anchor. Verified on-chain 2026-10-23: nonzero liquidity, working observe([900,0]) TWAP.
+    // WETH is token0 (WETH < USDC). Replaces CowSwap for Base stablecoins, whose orderbook API
+    // stopped answering the prod relayer. See pool_addresses.md.
+    8453: [
+        {
+            // WETH / USDC, 0.05% fee tier — the deepest active USDC tier on Base. See pool_addresses.md.
+            poolAddress: "0xd0b53D9277642d899DF5C87A3966A349A798F224",
+            inputToken: { address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", ticker: "USDC", decimals: 6 },
+            anchor: { address: "0x4200000000000000000000000000000000000006", ticker: "WETH", decimals: 18 },
+        },
+        {
+            // USDT, pegged 1:1 to USDC through the WETH / USDC 0.05% pool. Base's USDT/WETH pools
+            // hold only ~10-33 WETH (checked 2026-10-23), cheap enough to skew a 15-minute TWAP
+            // and under-price the fee. See pool_addresses.md.
+            poolAddress: "0xd0b53D9277642d899DF5C87A3966A349A798F224",
+            inputToken: { address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", ticker: "USDT", decimals: 6 },
+            anchor: { address: "0x4200000000000000000000000000000000000006", ticker: "WETH", decimals: 18 },
+            pricedAs: { address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", ticker: "USDC", decimals: 6 },
+        },
+    ],
+    // Ethereum mainnet — canonical Uniswap V3 (factory 0x1F98431c8aD98523631AE4a59f267346ea31F984),
+    // WETH anchor. Verified on-chain 2026-10-23: nonzero liquidity, working observe([900,0]) TWAP.
+    // USDC is token0 (USDC < WETH), WETH is token0 against USDT. Replaces CowSwap, same outage as
+    // Base. See pool_addresses.md.
+    1: [
+        {
+            // USDC / WETH, 0.05% fee tier — the deepest active USDC tier on mainnet. See pool_addresses.md.
+            poolAddress: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
+            inputToken: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", ticker: "USDC", decimals: 6 },
+            anchor: { address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", ticker: "WETH", decimals: 18 },
+        },
+        {
+            // WETH / USDT, 0.05% fee tier. See pool_addresses.md.
+            poolAddress: "0x11b815efB8f581194ae79006d24E0d814B7697F6",
+            inputToken: { address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", ticker: "USDT", decimals: 6 },
+            anchor: { address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", ticker: "WETH", decimals: 18 },
+        },
+    ],
+    // Arbitrum One — canonical Uniswap V3 (factory 0x1F98431c8aD98523631AE4a59f267346ea31F984),
+    // WETH anchor. Verified on-chain 2026-10-23: nonzero liquidity, working observe([900,0]) TWAP.
+    // WETH is token0 in both pools. Replaces CowSwap, same outage as Base. See pool_addresses.md.
+    42161: [
+        {
+            // WETH / USDC, 0.05% fee tier — the deepest USDC tier on Arbitrum. See pool_addresses.md.
+            poolAddress: "0xC6962004f452bE9203591991D15f6b388e09E8D0",
+            inputToken: { address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", ticker: "USDC", decimals: 6 },
+            anchor: { address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", ticker: "WETH", decimals: 18 },
+        },
+        {
+            // WETH / USD₮0, 0.05% fee tier — the deepest USDT0 tier on Arbitrum. See pool_addresses.md.
+            poolAddress: "0x641C00A822e8b671738d32a431a4Fb6074E5c79d",
+            inputToken: { address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", ticker: "USDT0", decimals: 6 },
+            anchor: { address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", ticker: "WETH", decimals: 18 },
         },
     ],
 };

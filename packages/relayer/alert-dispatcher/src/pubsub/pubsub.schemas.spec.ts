@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { zAlertEvent, zPubSubPushEnvelope } from "./pubsub.schemas";
+import { zAlertEvent, zReportEvent, zPubSubPushEnvelope } from "./pubsub.schemas";
 
 // Shared contract fixture: the relayer's alert-publisher.spec.ts asserts publishAlert produces the
 // `valid` events; this spec asserts the dispatcher accepts them and rejects the `invalid` ones.
@@ -23,6 +23,30 @@ describe("zAlertEvent (shared contract fixture)", () => {
 
     it.each(fixture.invalid.map((entry) => [entry.description, entry.value] as const))("rejects invalid fixture event: %s.", (_d, value) => {
         expect(zAlertEvent.safeParse(value).success).toBe(false);
+    });
+});
+
+// Shared contract fixture: the relayer's report-publisher.spec.ts asserts publishReport produces
+// the `valid` events; this spec asserts the dispatcher accepts them and rejects the `invalid` ones.
+const reportFixture = JSON.parse(readFileSync(resolve(__dirname, "../../../alert-fixtures/report-events.json"), "utf-8")) as {
+    valid: unknown[];
+    invalid: { description: string; value: unknown }[];
+};
+
+describe("zReportEvent (shared contract fixture)", () => {
+    it("has fixtures to check.", () => {
+        expect(reportFixture.valid.length).toBeGreaterThan(0);
+        expect(reportFixture.invalid.length).toBeGreaterThan(0);
+    });
+
+    it.each(reportFixture.valid.map((event, i) => [i, event] as const))("accepts valid fixture event #%i unchanged.", (_i, event) => {
+        const parsed = zReportEvent.safeParse(event);
+        expect(parsed.success).toBe(true);
+        expect(parsed.data).toEqual(event);
+    });
+
+    it.each(reportFixture.invalid.map((entry) => [entry.description, entry.value] as const))("rejects invalid fixture event: %s.", (_d, value) => {
+        expect(zReportEvent.safeParse(value).success).toBe(false);
     });
 });
 

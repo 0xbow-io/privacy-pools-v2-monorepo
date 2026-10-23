@@ -79,6 +79,15 @@ export class SorobanRPCInteractor implements IStellarRPCInteractor {
     }
 
     /**
+     * @inheritdoc IStellarRPCInteractor.getNativeBalance
+     * @throws {StellarRPCCallTimedOut} If the call exceeds its bounded timeout.
+     */
+    async getNativeBalance(publicKey: string): Promise<bigint> {
+        const entry = await this.withTimeout(this.server.getAccountEntry(publicKey), "getAccountEntry");
+        return BigInt(entry.balance().toString());
+    }
+
+    /**
      * @inheritdoc IStellarRPCInteractor.simulateRead
      * @throws {StellarSimulationFailed} If the simulation reports an error.
      */

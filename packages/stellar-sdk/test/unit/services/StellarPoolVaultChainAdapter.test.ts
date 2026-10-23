@@ -32,6 +32,7 @@ function createMockRPC(overrides?: Partial<IStellarRPCInteractor>): IStellarRPCI
         getLatestLedger: vi.fn(async () => "0x64" as Hash),
         getFinalizedBlockNumber: vi.fn(async () => ({ status: "finalized" as const, blockNumber: "0x64" as Hash })),
         getAccount: vi.fn(async () => ({ publicKey: READ_SOURCE, sequence: "1" })),
+        getNativeBalance: vi.fn(async () => 0n),
         simulateRead: vi.fn(async () => false),
         buildTransaction: vi.fn(async () => "unsigned-xdr"),
         buildTransactionWithAuth: vi.fn(),

@@ -11,7 +11,8 @@ import * as uniswap_v3_parameters from "./uniswap_v3/quote_obtention";
 import * as curveUtilities from "./utilities";
 import { TokenDescription, RateProvider, type RateProviderDescription } from "./rate_types";
 import { ChainType } from "../config/enums";
-import { createMockLoggerProvider } from "../test/mocks";
+import { createMockLogger, createMockLoggerProvider } from "../test/mocks";
+import { FATLoggerService } from "../logger/fat.logger.provider";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -46,12 +47,37 @@ async function isRpcAvailable(): Promise<boolean> {
     }
 }
 
+// The CowSwap tests call the public CoW orderbook API as well as the RPC. They are opt-in: the CoW
+// API rate-limits us and the tests are slow, so they must not run (or show as failures) in a
+// default run. Set RUN_LIVE_COWSWAP_TESTS=1 to run them. Even then, a reachability probe skips them
+// when the API is unreachable or rate-limited (HTTP 429), since both would otherwise hang or fail.
+const LIVE_COWSWAP_ENABLED = process.env.RUN_LIVE_COWSWAP_TESTS === "1";
+const COW_API_URL = "https://api.cow.fi/mainnet/api/v1/version";
+
+async function isCowApiAvailable(): Promise<boolean> {
+    try {
+        const res = await fetch(COW_API_URL, { signal: AbortSignal.timeout(2000) });
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
 let rpcAvailable = false;
+let cowApiAvailable = false;
 
 beforeAll(async () => {
-    rpcAvailable = await isRpcAvailable();
+    [rpcAvailable, cowApiAvailable] = await Promise.all([
+        isRpcAvailable(),
+        LIVE_COWSWAP_ENABLED ? isCowApiAvailable() : Promise.resolve(false),
+    ]);
     if (!rpcAvailable) {
         console.warn(`Skipping RateProviderService tests: RPC at ${rpc_url} is not reachable`);
+    }
+    if (!LIVE_COWSWAP_ENABLED) {
+        console.warn("Skipping CowSwap live tests: opt-in, set RUN_LIVE_COWSWAP_TESTS=1 to run them");
+    } else if (!cowApiAvailable) {
+        console.warn(`Skipping CowSwap live tests: ${COW_API_URL} is unreachable or rate-limited`);
     }
 });
 
@@ -66,6 +92,24 @@ const itIfRpc = (name: string, fn: () => void | Promise<void>, timeout?: number)
         async () => {
             if (!rpcAvailable) {
                 console.warn(`Skipping "${name}": RPC at ${rpc_url} is not reachable`);
+                return;
+            }
+            await fn();
+        },
+        timeout,
+    );
+};
+
+// CowSwap live tests. The opt-in flag is known at load time, so it is decided at registration:
+// without it these cases are registered with it.skip and CTRF reports them as skipped (not passed).
+// With it on, they also need the RPC and the CoW API reachable (checked in beforeAll), otherwise the
+// body returns early.
+const itIfCow = (name: string, fn: () => void | Promise<void>, timeout?: number) => {
+    (LIVE_COWSWAP_ENABLED ? it : it.skip)(
+        name,
+        async () => {
+            if (!rpcAvailable || !cowApiAvailable) {
+                console.warn(`Skipping "${name}": RPC or CoW API not reachable`);
                 return;
             }
             await fn();
@@ -253,11 +297,11 @@ describe("RateProviderService", () => {
             service = module.get<RateProviderService>(RateProviderService);
         });
 
-        itIfRpc("should be defined", () => {
+        itIfCow("should be defined", () => {
             expect(service).toBeDefined();
         });
 
-        itIfRpc("should return non-zero num and den for a valid quote", async () => {
+        itIfCow("should return non-zero num and den for a valid quote", async () => {
             const usdc: TokenDescription = {
                 address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                 ticker: "USDC",
@@ -280,7 +324,7 @@ describe("RateProviderService", () => {
             expect(response.den).toBeGreaterThan(0n);
         }, 15_000);
 
-        itIfRpc("should always return WETH as output regardless of output_token param", async () => {
+        itIfCow("should always return WETH as output regardless of output_token param", async () => {
             const usdt: TokenDescription = {
                 address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
                 ticker: "USDT",
@@ -303,7 +347,7 @@ describe("RateProviderService", () => {
             expect(response.token_out.address).toBe("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
         }, 15_000);
 
-        itIfRpc("should return similar rates for USDC and USDT (both ~$1 stablecoins)", async () => {
+        itIfCow("should return similar rates for USDC and USDT (both ~$1 stablecoins)", async () => {
             const usdc: TokenDescription = {
                 address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                 ticker: "USDC",
@@ -339,7 +383,7 @@ describe("RateProviderService", () => {
             expect(ratio).toBeLessThan(1.05);
         }, 30_000);
 
-        itIfRpc("should preserve token_in from the input", async () => {
+        itIfCow("should preserve token_in from the input", async () => {
             const dai: TokenDescription = {
                 address: "0x6b175474e89094c44da98b954eedeac495271d0f",
                 ticker: "DAI",
@@ -390,7 +434,7 @@ describe("RateProviderService", () => {
             cowswapService = cowswapModule.get<RateProviderService>(RateProviderService);
         });
 
-        itIfRpc("Curve and CowSwap should return rates within 10% for USDC/WETH", async () => {
+        itIfCow("Curve and CowSwap should return rates within 10% for USDC/WETH", async () => {
             const usdc: TokenDescription = {
                 address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                 ticker: "USDC",
@@ -480,11 +524,11 @@ describe("RateProviderService", () => {
                 matrixService = module.get<RateProviderService>(RateProviderService);
             });
 
-            it.each(COWSWAP_MATRIX)(
+            (LIVE_COWSWAP_ENABLED ? it.each : it.skip.each)(COWSWAP_MATRIX)(
                 "quotes $ticker on chainId $chainId",
                 async ({ chainId, ticker, address, decimals }) => {
-                    if (!rpcAvailable) {
-                        console.warn(`Skipping Cowswap matrix case ${ticker}@${chainId}: RPC not reachable`);
+                    if (!rpcAvailable || !cowApiAvailable) {
+                        console.warn(`Skipping Cowswap matrix case ${ticker}@${chainId}: RPC or CoW API not reachable`);
                         return;
                     }
                     const token: TokenDescription = {
@@ -550,6 +594,26 @@ describe("RateProviderService", () => {
     describe("Defensive guards (mocked)", () => {
         afterEach(() => {
             jest.restoreAllMocks();
+        });
+
+        it("pages the operator (alert, per-provider and per-chain dedupKey) when the rate getter fails", async () => {
+            const module: TestingModule = await Test.createTestingModule({
+                providers: [
+                    RateProviderService,
+                    createMockLoggerProvider(),
+                    { provide: "RATE_GETTER_FUNCTION", useValue: jest.fn().mockRejectedValue(new Error("upstream down")) },
+                    { provide: "RATE_PROVIDER_DESCRIPTION", useValue: chainOneDescription },
+                ],
+            }).compile();
+            const mockedService = module.get<RateProviderService>(RateProviderService);
+            const logger = module.get(FATLoggerService) as unknown as ReturnType<typeof createMockLogger>;
+            const usdc = { address: "0x0000000000000000000000000000000000000001", ticker: "USDC", quoter: RateProvider.CURVE, decimals: 6, chainType: ChainType.EVM, chainId: 1 };
+
+            await expect(mockedService.quote(usdc, usdc, ChainType.EVM, 1, "unused")).rejects.toThrow(BadRequestException);
+            expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("failed to quote USDC"), {
+                alert: true,
+                dedupKey: `quote.rateProvider.${chainOneDescription.provider}.1`,
+            });
         });
 
         describe("Curve", () => {

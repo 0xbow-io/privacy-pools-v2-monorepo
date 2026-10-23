@@ -51,7 +51,11 @@ export class RateProviderService {
             // degenerate zero rate, unsupported chain), it means this request can't be quoted
             // as configured right now — a client-facing 400, not a server bug.
             const message = err instanceof Error ? err.message : String(err);
-            this.logger.error(`Rate provider ${this.description.provider} failed to quote ${input_token.ticker}: ${message}`);
+            // Upstream/config fault (CLAUDE.md §4b): page once per provider and chain, never per token or message.
+            this.logger.error(`Rate provider ${this.description.provider} failed to quote ${input_token.ticker}: ${message}`, {
+                alert: true,
+                dedupKey: `quote.rateProvider.${this.description.provider}.${chainId}`,
+            });
             // The client gets the one-line, key-free form: a viem transport error
             // carries the RPC URL (and its API key) in its message.
             throw new BadRequestException(clientSafeErrorMessage(err));

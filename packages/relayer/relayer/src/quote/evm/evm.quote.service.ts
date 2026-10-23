@@ -23,7 +23,7 @@ import { ChainedQuoteService } from "../quote.interface";
 import { ChainType } from "../../config/enums";
 import { RateProviderService } from "../../rate_provider/rate_provider.service";
 import { RateProvider, TokenDescription } from "../../rate_provider/rate_types";
-import { calculateBpsFee, calculateExactBpsFee, calculateExactFlatFee, calculateExtraGas, calculateFlatFee, nativeToToken } from "./fee.calculations";
+import { calculateBpsFee, calculateExactBpsFee, calculateExactFlatFee, calculateExtraGas, calculateFlatFee, nativeToToken, type FeeAlertContext } from "./fee.calculations";
 import { EvmContractService } from "../../sdk/evm.contract.service";
 import { EvmAssetConfig } from "../../config/types";
 import {
@@ -91,7 +91,7 @@ export class EvmQuoteService implements ChainedQuoteService<ChainType.EVM> {
         const flatFeeAmount = this.configService.flatFeeAmount();
         const { transactionPrice } = this.calculateTransactionCost(false, gasPrice, true);
         const transactionPriceInToken = nativeToToken(transactionPrice, nativeQuote, this.configService.asset(asset).decimals);
-        const feeAmount = calculateFlatFee(transactionPriceInToken, flatFeeAmount, maxRelayFee);
+        const feeAmount = calculateFlatFee(transactionPriceInToken, flatFeeAmount, maxRelayFee, this.feeAlert());
 
         const quoteResponse: EvmTransferQuoteResponseDto = {
             feeAmount,
@@ -136,18 +136,18 @@ export class EvmQuoteService implements ChainedQuoteService<ChainType.EVM> {
 
         if (exact) {
             if (assetConfig.fee_bps) {
-                const result = calculateExactBpsFee(amount, assetConfig.fee_bps, nativeQuote, relayPrice, maxRelayFee, assetConfig.decimals);
+                const result = calculateExactBpsFee(amount, assetConfig.fee_bps, nativeQuote, relayPrice, maxRelayFee, assetConfig.decimals, this.feeAlert());
                 feeAmount = result.feeAmount;
                 responseAmount = result.requiredInput;
             } else {
-                feeAmount = calculateFlatFee(relayPriceInToken, flatFeeAmount, maxRelayFee);
+                feeAmount = calculateFlatFee(relayPriceInToken, flatFeeAmount, maxRelayFee, this.feeAlert());
                 responseAmount = calculateExactFlatFee(amount, feeAmount);
             }
         } else {
             if (assetConfig.fee_bps) {
-                feeAmount = calculateBpsFee(amount, assetConfig.fee_bps, nativeQuote, relayPrice, maxRelayFee, assetConfig.decimals);
+                feeAmount = calculateBpsFee(amount, assetConfig.fee_bps, nativeQuote, relayPrice, maxRelayFee, assetConfig.decimals, this.feeAlert());
             } else {
-                feeAmount = calculateFlatFee(relayPriceInToken, flatFeeAmount, maxRelayFee);
+                feeAmount = calculateFlatFee(relayPriceInToken, flatFeeAmount, maxRelayFee, this.feeAlert());
             }
             responseAmount = amount;
         }
@@ -348,9 +348,9 @@ export class EvmQuoteService implements ChainedQuoteService<ChainType.EVM> {
 
         let feeAmount: Wei;
         if (assetConfig.fee_bps) {
-            feeAmount = calculateBpsFee(amount, assetConfig.fee_bps, nativeQuote, transactionPrice, maxRelayFee, assetConfig.decimals);
+            feeAmount = calculateBpsFee(amount, assetConfig.fee_bps, nativeQuote, transactionPrice, maxRelayFee, assetConfig.decimals, this.feeAlert());
         } else {
-            feeAmount = calculateFlatFee(relayPriceInToken, flatFeeAmount, maxRelayFee);
+            feeAmount = calculateFlatFee(relayPriceInToken, flatFeeAmount, maxRelayFee, this.feeAlert());
         }
 
         // ETH gas top-up, mirroring the withdrawal path's `extraGas` flag: the client
@@ -546,17 +546,21 @@ export class EvmQuoteService implements ChainedQuoteService<ChainType.EVM> {
     // for the recipient floor, so fee and floor come from the same on-chain number.
     // The rate is Aave accounting (monotonic, not a pool price), so no historic check.
     private async quoteViaUnderlying(assetConfig: EvmAssetConfig): Promise<{ num: bigint; den: bigint }> {
+        // Operator config faults: logged with a per-chain alert (CLAUDE.md §4b) before the 400.
+        const underlyingDedupKey = `quote.underlyingMisconfigured.${this.configService.chainId()}`;
         if (assetConfig.underlying === undefined) {
-            throw new BadRequestException(`Asset ${assetConfig.ticker} uses quoter "Underlying" but has no underlying configured`);
+            const error = `Asset ${assetConfig.ticker} uses quoter "Underlying" but has no underlying configured`;
+            this.logger.error(error, { alert: true, dedupKey: underlyingDedupKey });
+            throw new BadRequestException(error);
         }
         const underlying = this.configService.asset(assetConfig.underlying);
         // A Native-treated underlying (WETH / native sentinel) quotes 1:1 to gas via
         // quoteInNativeToken's native branch, so a native-mode wrapper (ppETH over WETH)
         // prices as previewRedeem(1 share) worth of native. Only a chained share is refused.
         if (underlying.quoter === RateProvider.UNDERLYING) {
-            throw new BadRequestException(
-                `Asset ${assetConfig.ticker}: underlying ${underlying.ticker} is itself a share token — chained wrappers are not supported`
-            );
+            const error = `Asset ${assetConfig.ticker}: underlying ${underlying.ticker} is itself a share token — chained wrappers are not supported`;
+            this.logger.error(error, { alert: true, dedupKey: underlyingDedupKey });
+            throw new BadRequestException(error);
         }
         const underlyingQuote = await this.quoteInNativeToken(underlying.address);
         const oneShare = 10n ** BigInt(assetConfig.decimals);
@@ -567,7 +571,9 @@ export class EvmQuoteService implements ChainedQuoteService<ChainType.EVM> {
             args: [oneShare],
         });
         if (redeem === 0n) {
-            throw new BadRequestException(`Asset ${assetConfig.ticker}: previewRedeem(1 share) returned 0 — cannot price shares`);
+            const error = `Asset ${assetConfig.ticker}: previewRedeem(1 share) returned 0 — cannot price shares`;
+            this.logger.error(error, { alert: true, dedupKey: `quote.previewRedeemZero.${this.configService.chainId()}` });
+            throw new BadRequestException(error);
         }
         return {
             num: underlyingQuote.num * redeem,
@@ -579,6 +585,10 @@ export class EvmQuoteService implements ChainedQuoteService<ChainType.EVM> {
     // against the wrapped form); otherwise the sentinel-addressed native asset —
     // which on chains like Citrea is not ETH-named (cBTC), so ticker lookups alone
     // cannot find it.
+    private feeAlert(): FeeAlertContext {
+        return { logger: this.logger, chainId: this.configService.chainId() };
+    }
+
     private nativeAssetConfig(): EvmAssetConfig {
         const assets = this.configService.allAssets();
         const native =
@@ -586,7 +596,7 @@ export class EvmQuoteService implements ChainedQuoteService<ChainType.EVM> {
             assets.find((a) => a.address.toLowerCase() === NATIVE_ASSET_ADDRESS);
         if (native === undefined) {
             const error = `No native asset configured for chain ${this.configService.chainId()}: cannot convert an ERC20 fee quote into the native asset`;
-            this.logger.error(error);
+            this.logger.error(error, { alert: true, dedupKey: `quote.nativeAssetMissing.${this.configService.chainId()}` });
             throw new BadRequestException(error);
         }
         return native;
