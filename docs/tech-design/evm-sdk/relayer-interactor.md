@@ -367,12 +367,30 @@ The `SetAuthPolicy` payload is built by [`PoolSessionKeystore.buildSetAuthPolicy
 
 Confirmation is not part of RelayerInteractor: the relayer's HTTP response (`202 Accepted`) confirms only that the transaction was broadcast, not that it will confirm on-chain — callers watch the returned transaction hash via `RPCInteractor.waitForTransactionReceipt`. The relayer does not guarantee the returned hash is the hash that mines: if its own bookkeeping finds that hash's nonce stuck (evicted from the mempool, or simply unconfirmed past a timeout), it cancels that nonce with a 0-value self-transfer and moves on — the original hash then never mines, and callers should treat that as a real failure requiring resubmission, not just slowness to wait out. This check runs both reactively (the next write on the same chain) and on a fixed interval independent of write traffic, plus an externally-triggered backstop — see [relayer/stuck-nonce-reconciliation.md](../relayer/stuck-nonce-reconciliation.md) — so a stuck nonce no longer needs a live write request to ever be noticed.
 
+
+## Quote-stage relayer outages
+
+Transfer, withdrawal, batch and swap quote requests wrap HTTP 5xx responses in
+`RelayerQuoteUnavailable`, a `RelayerRequestFailed` subclass. Its short message is
+"Your funds are safe. The relayer is having issues. Try again later."
+The original HTTP `status` and error `cause` remain available for diagnostics.
+This applies only to fee quoting, before submission; relay submission errors and
+uncertain transaction outcomes retain their existing handling. HTTP 4xx responses,
+local validation errors and untyped transport failures are not classified as
+confirmed relayer server outages. The SDK does not claim that an operator was
+alerted or promise a fix, and makes no additional requests or retries.
+
+Shared quote fan-out preserves this typed short error if every configured relayer
+fails this way. Mixed failures keep the existing aggregate diagnostic, and a
+successful relayer still supplies the quote when another relayer is unavailable.
+
 ---
 
 **Version History**
 
 | Version | Change |
 | --- | --- |
+| 1.17.0 | 2026-10-23 — Quote-stage HTTP 5xx errors use `RelayerQuoteUnavailable` with a short funds-safe message, retained status/cause, and no change to relay-submission outcomes. |
 | 1.16.0 | 2026-10-14 — `RelayerChainDetails` gains optional `destinationCallsSupported` (relayer `destination_calls_supported`, fail-closed default; whether a bridge can run a destination call on that chain). Absent = allowed (older relayers). Consumed by `PoolSessionReshieldCrosschain`'s destination capability gate (`DestinationCallsUnsupported`). |
 | 1.15.0 | 2026-10-08 — Relayer `max_native_gas_wei` removed: `RelayerChainDetails.maxNativeGasWei` and `RelayerCaps.maxNativeGasWei` dropped (`relayerCapsFromDetails` returns `{ maxSwapValueWei? }` only; `/v1/details` no longer publishes it); `SwapQuoteParams.extraGas` top-up is exactly `extraGasFundAmount` × gas price, unclamped, bounded by `maxRelayFee`, with no relay-time re-cap. |
 | 1.14.2 | 2026-10-08 — `maxNativeGasWei` / `maxSwapValueWei` parsed leniently: decimal string, `0x` hex string or non-negative safe-integer number accepted and normalized to a decimal string; anything else becomes `undefined` (cap unknown; relayer still enforces) instead of rejecting the whole `/v1/details` response, so discovery survives a malformed cap. |

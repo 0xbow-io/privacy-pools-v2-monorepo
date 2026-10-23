@@ -38,12 +38,23 @@ Every method's exact parameter/return shapes, HTTP endpoints, and the EVM-specif
 
 Confirmation is not part of `IRelayerInteractor`: callers watch the returned transaction hash via the chain's own RPC/wait-for-receipt mechanism. A relayer's returned hash is not guaranteed to be the hash that mines — see [evm-sdk/relayer-interactor.md](../evm-sdk/relayer-interactor.md) (1.9.0) for the EVM relayer's stuck-nonce cancel/replace behavior and its `202 Accepted` response-code fix.
 
+## Quote failure aggregation
+
+`RelayerQuoteUnavailable` extends `RelayerRequestFailed` for an explicit server
+failure during fee quoting, before submission. EVM quote requests use it for HTTP
+5xx responses. It carries a short message, HTTP `status`, and the original `cause`.
+Shared quote fan-out retains this error when all relayers fail this way, preserving
+the individual causes in an `AggregateError`. Mixed errors retain the existing
+per-relayer diagnostic, while any successful relayer still supplies its quote.
+This does not change relay submission errors or classify uncertain outcomes as safe.
+
 ---
 
 **Version History**
 
 | Version | Change |
 | --- | --- |
+| 1.3 | 2026-10-23 — Documented the typed quote-stage outage and shared fan-out behavior. |
 | 1.2 | 2026-10-01 — `StellarRelayerInteractor` row and new "Stellar support" paragraph: batch quote/relay, yield withdrawal fields, relayed transfer, register-and-withdrawal now implemented on Stellar; unsupported methods listed. Server side documented in the new [relayer/stellar-relayer.md](../relayer/stellar-relayer.md). |
 | 1.1 | 2026-09-25 — Doc-only: corrected the "never replaces it" claim above — see evm-sdk/relayer-interactor.md 1.9.0 for the EVM relayer's stuck-nonce cancel/replace behavior and its 202 Accepted response-code fix. |
 | 1.0 | 2026-09-16 — Split out of `sdk/relayer-interactor.md` as part of the `packages/sdk` → `core-sdk`/`evm-sdk`/`stellar-sdk` package split. Documents only the shared `IRelayerInteractor<TAddress>` interface shape; the full method/endpoint reference and its version history live in [evm-sdk/relayer-interactor.md](../evm-sdk/relayer-interactor.md) (primary lineage — the original doc's 1.0.0–1.6.1 history). |

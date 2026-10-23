@@ -6,7 +6,7 @@ import type {
     TransferQuoteParams,
     WithdrawalQuoteParams,
 } from "../internal.js";
-import { FeeCommitmentExpired, RelayerRequestFailed } from "../internal.js";
+import { FeeCommitmentExpired, RelayerRequestFailed, RelayerQuoteUnavailable } from "../internal.js";
 
 // NOTE (core-sdk split): the original packages/sdk/src/utils/RelayerQuotes.ts also exported
 // `settleSwapRelayerQuotes` (a per-relayer swap-quote fan-out, using the excluded SwapQuoteParams
@@ -33,10 +33,12 @@ export async function settleRelayerQuotes<TInfo extends { name: string }, TQuote
     const settled = await Promise.allSettled(relayers.map(fetch));
     const result: TQuote[] = [];
     const failures: string[] = [];
+    const causes: unknown[] = [];
     for (const [index, outcome] of settled.entries()) {
         if (outcome.status === "fulfilled") {
             result.push(outcome.value);
         } else {
+            causes.push(outcome.reason);
             const reason =
                 outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason);
             failures.push(`${relayers[index]!.name}: ${reason}`);
@@ -46,6 +48,15 @@ export async function settleRelayerQuotes<TInfo extends { name: string }, TQuote
         logger?.warn("Some relayers failed to quote", { failures });
     }
     if (relayers.length > 0 && result.length === 0) {
+        // Keep the short outage message only when EVERY relayer returned an
+        // explicit quote-stage server failure. Mixed validation failures keep
+        // their existing diagnostic so a bad request is not called an outage.
+        if (causes.every((error) => error instanceof RelayerQuoteUnavailable)) {
+            throw new RelayerQuoteUnavailable(
+                (causes[0] as RelayerQuoteUnavailable).status,
+                new AggregateError(causes, "All configured relayers failed to quote"),
+            );
+        }
         throw new RelayerRequestFailed(
             `All configured relayers failed to quote: ${failures.join("; ")}`,
         );

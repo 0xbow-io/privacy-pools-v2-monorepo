@@ -311,6 +311,7 @@ export {
     RelayerInteractorBaseError,
     InvalidRelayerConfig,
     RelayerRequestFailed,
+    RelayerQuoteUnavailable,
     RelayerRejected,
     FeeCommitmentExpired,
 } from "./errors/RelayerInteractor.js";
