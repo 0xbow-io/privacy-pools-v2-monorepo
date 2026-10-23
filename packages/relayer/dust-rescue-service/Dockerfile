@@ -1,4 +1,4 @@
-FROM node:22-slim AS build
+FROM node:22.23.4-slim AS build
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -27,7 +27,7 @@ RUN pnpm --filter @privacy-pools-v2/dust-rescue-prover build
 COPY packages/relayer/dust-rescue-service/ packages/relayer/dust-rescue-service/
 RUN pnpm --filter @privacy-pools-v2/dust-rescue-service build
 
-FROM node:22-slim
+FROM node:22.23.4-slim
 WORKDIR /app/packages/relayer/dust-rescue-service
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/packages/core-sdk/package.json /app/packages/core-sdk/package.json
