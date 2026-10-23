@@ -432,6 +432,16 @@ describe("EvmQuoteService", () => {
             await expect(service.quoteInNativeToken(PP_USDC_ADDRESS)).rejects.toThrow(/previewRedeem\(1 share\) returned 0/);
         });
 
+        it("pages the operator (alert, per-chain dedupKey) when previewRedeem is 0", async () => {
+            mockChainService.readContract.mockResolvedValue(0n);
+            const logger = module.get(FATLoggerService) as unknown as ReturnType<typeof createMockLogger>;
+            await expect(service.quoteInNativeToken(PP_USDC_ADDRESS)).rejects.toThrow();
+            expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("previewRedeem(1 share) returned 0"), {
+                alert: true,
+                dedupKey: expect.stringMatching(/^quote\.previewRedeemZero\./),
+            });
+        });
+
         it("prices a native-mode wrapper (ppETH over WETH) as previewRedeem(1 share) worth of native — no rate provider", async () => {
             const WETH = { address: getAddress("0x0000000000000000000000000000000000000c02"), ticker: "WETH", quoter: RateProvider.NATIVE, decimals: 18 };
             const PP_ETH = { ...PP_USDC, ticker: "ppETH", underlying: WETH.address };
@@ -456,6 +466,11 @@ describe("EvmQuoteService", () => {
                 address.toLowerCase() === CHAINED_ADDRESS.toLowerCase() ? CHAINED : PP_USDC
             );
             await expect(service.quoteInNativeToken(CHAINED_ADDRESS)).rejects.toThrow(/chained wrappers are not supported/);
+            const logger = module.get(FATLoggerService) as unknown as ReturnType<typeof createMockLogger>;
+            expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("chained wrappers are not supported"), {
+                alert: true,
+                dedupKey: expect.stringMatching(/^quote\.underlyingMisconfigured\./),
+            });
             expect(mockChainService.readContract).not.toHaveBeenCalled();
         });
     });
@@ -506,6 +521,27 @@ describe("EvmQuoteService", () => {
                     false
                 )
             ).rejects.toThrow(/No native asset configured/);
+        });
+
+        it("pages the operator when no native asset is configured", async () => {
+            mockConfigService.asset.mockReturnValue({
+                address: TEST_NON_NATIVE_ASSET,
+                ticker: "USDC",
+                quoter: RateProvider.MOCK,
+                decimals: 6,
+            });
+            mockConfigService.allAssets.mockReturnValue([]);
+            const logger = module.get(FATLoggerService) as unknown as ReturnType<typeof createMockLogger>;
+            await expect(
+                service.quote(
+                    { asset: TEST_NON_NATIVE_ASSET, amount: Wei(1_000_000_000n), extraGas: false, commit: false },
+                    false
+                )
+            ).rejects.toThrow(/No native asset configured/);
+            expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("No native asset configured"), {
+                alert: true,
+                dedupKey: expect.stringMatching(/^quote\.nativeAssetMissing\./),
+            });
         });
     });
 

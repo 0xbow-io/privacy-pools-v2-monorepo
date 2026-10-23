@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Hash } from "../../../src/internal.js";
 import {
     SorobanRPCInteractor,
+    StellarRPCCallTimedOut,
     StellarSimulationFailed,
     StellarTransactionFailed,
     StellarTransactionTimedOut,
@@ -303,6 +304,28 @@ describe("SorobanRPCInteractor", () => {
             await expect(
                 interactor.simulateRead(CONTRACT_ID, "get_asset_config", [], SOURCE_PUBLIC_KEY),
             ).rejects.toThrow(StellarSimulationFailed);
+        });
+    });
+
+    describe("getNativeBalance", () => {
+        it("return the account entry's balance field as a bigint, in stroops", async () => {
+            vi.spyOn(rpc.Server.prototype, "getAccountEntry").mockResolvedValue({
+                balance: () => 123_456_789n,
+            } as unknown as xdr.AccountEntry);
+
+            const balance = await interactor.getNativeBalance(SOURCE_PUBLIC_KEY);
+
+            expect(balance).toBe(123_456_789n);
+        });
+
+        it("throw StellarRPCCallTimedOut when the call exceeds its bounded timeout", async () => {
+            vi.useFakeTimers();
+            vi.spyOn(rpc.Server.prototype, "getAccountEntry").mockReturnValue(new Promise(() => undefined));
+
+            const pending = interactor.getNativeBalance(SOURCE_PUBLIC_KEY);
+            const assertion = expect(pending).rejects.toThrow(StellarRPCCallTimedOut);
+            await vi.advanceTimersByTimeAsync(30_000);
+            await assertion;
         });
     });
 });

@@ -5,9 +5,10 @@ import { COOLDOWN_STORE } from "./cooldown/cooldown-store.interface";
 import { CHANNELS } from "./channel/channel.interface";
 import { TelegramChannel } from "./channel/telegram.channel";
 import { PubSubController } from "./pubsub/pubsub.controller";
+import { ReportsController } from "./pubsub/reports.controller";
 
 @Module({
-    controllers: [PubSubController],
+    controllers: [PubSubController, ReportsController],
     providers: [
         AlertDispatcherConfigService,
         TelegramChannel,

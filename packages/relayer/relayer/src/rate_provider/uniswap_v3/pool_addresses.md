@@ -1,4 +1,4 @@
-# Uniswap V3 pool verification (JuiceSwap on Citrea, Uniswap V3 on Optimism, BSC and Robinhood)
+# Uniswap V3 pool verification (JuiceSwap on Citrea, Uniswap V3 on Optimism, BSC, Robinhood, Base, Ethereum and Arbitrum)
 
 All addresses below were independently verified on-chain (not taken on faith from docs)
 using `cast` against the public RPCs already configured in this repo
@@ -137,6 +137,14 @@ BSC. It is wired with `pricedAs: USDT` on the USDT/WBNB 0.05% pool above, i.e. p
 Risk accepted for the hotfix: a FDUSD depeg is not detected and under-prices the relayer's fee
 (paid in FDUSD) by the depeg size.
 
+**U (added 2026-10-21, pegged).** U ("United Stables") `0xcE24439F2D9C6a2289F741120FE202248B666666`
+(`symbol()`="U", `name()`="United Stables", `decimals()`=18). `getPool(U, WBNB, fee)` resolves only
+the 0.3% tier (`0x8aA0507324adFa779fC75e2acD2433c339e1D049`) and `getPool(U, USDT, fee)` only the
+0.01% tier (`0x0E4dfdb0219fC7478Fc4D4d0d31D797fB1541920`); both report `liquidity()`=0, so neither
+can price U. It is wired like FDUSD: `pricedAs: USDT` on the USDT/WBNB 0.05% pool, i.e. priced 1:1
+as USDT. Same accepted risk: a U depeg is not detected and under-prices the relayer's fee (paid in
+U) by the depeg size.
+
 In both wired pools the stablecoin is `token0` (its address is numerically below WBNB's),
 so the input token is token0 — the opposite of Citrea mainnet (WCBTC is token0 there)
 and handled by the same address-comparison direction logic in `quote_obtention.ts`.
@@ -179,6 +187,62 @@ Implied price **~$2,425 per ETH** from both spot and the 15-minute TWAP, matchin
 CowSwap/LI.FI ETH price on other chains the same day. CowSwap, Curve and the Uniswap quoter's
 other chains do not cover chainId 4663.
 
+## Base (chainId 8453)
+
+Added 2026-10-23, replacing CowSwap for Base USDC and USDT: CowSwap's orderbook API stopped
+answering the prod relayer (every CowSwap quote ran into the 8s quote deadline, while the same
+request from elsewhere returned in ~1.5s). Canonical Uniswap V3, factory
+`0x33128a8fC17869897dcE68Ed026d694621f6FDfD`. Pool addresses resolved on-chain via
+`factory.getPool()` with `cast` against `https://mainnet.base.org`.
+
+| Contract | Address | Verified |
+|---|---|---|
+| UniswapV3Factory | `0x33128a8fC17869897dcE68Ed026d694621f6FDfD` | `getPool()` resolves every pool below |
+| WETH (anchor) | `0x4200000000000000000000000000000000000006` | OP-stack predeploy, `symbol()`="WETH", `decimals()`=18 |
+| USDC (native) | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` | `symbol()`="USDC", `decimals()`=6 |
+| USDT | `0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2` | `symbol()`="USDT", `decimals()`=6 |
+
+Wired:
+
+| Pair | Fee | Pool address | `liquidity()` | `token0()` | `slot0` tick | 15-min TWAP tick |
+|---|---|---|---|---|---|---|
+| WETH/USDC | 0.05% | `0xd0b53D9277642d899DF5C87A3966A349A798F224` | ~1.13e18 (~2.57M USDC, ~2,561 WETH held) | WETH | `-198487` | `-198487` |
+
+USDT is priced 1:1 as USDC through that pool (`pricedAs`), like FDUSD and U on BSC. Its own
+WETH pools exist but are thin: 0.05% `0xd92E0767473D1E3FF11Ac036f2b1DB90aD0aE55F` (~9.8 WETH),
+0.3% `0xcE1d8c90A5F0ef28fe0F457e5Ad615215899319a` (~32.8 WETH, observation cardinality 20),
+0.01% `0xD0d182Fed9d119E1E41f5199266974F2546eB3F5` (zero liquidity). Skewing a 15-minute TWAP
+on those would be cheap, so they are not wired. A USDT depeg is not detected.
+
+Other USDC tiers seen (not wired): 0.01% `0xb4CB800910B228ED3d0834cF79D697127BBB00e5`
+(~163 WETH), 0.3% `0x6c561B446416E1A00E8E93E221854d6eA4171372`.
+
+Implied price **~$2,400 per ETH** from the TWAP. All five pools above with liquidity agreed
+within ~0.4% ($2,400–$2,409), and a CowSwap USDC→WETH quote taken from outside the relayer the
+same day implied ~$2,401.
+
+## Ethereum mainnet (chainId 1) and Arbitrum One (chainId 42161)
+
+Added 2026-10-23, replacing CowSwap for every remaining CowSwap-quoted asset (same outage as
+Base above). Canonical Uniswap V3 on both chains, factory
+`0x1F98431c8aD98523631AE4a59f267346ea31F984`. Pool addresses resolved on-chain via
+`factory.getPool()` with `cast` against `https://ethereum-rpc.publicnode.com` and
+`https://arb1.arbitrum.io/rpc`. All four stablecoins report `decimals()`=6.
+
+| Chain | Pair | Fee | Pool address | `liquidity()` | Stablecoin held | `token0()` | 15-min TWAP tick | Implied ETH |
+|---|---|---|---|---|---|---|---|---|
+| 1 | USDC/WETH | 0.05% | `0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640` | ~2.17e18 | ~60M USDC | USDC | `198482` | ~$2,401 |
+| 1 | WETH/USDT | 0.05% | `0x11b815efB8f581194ae79006d24E0d814B7697F6` | ~6.94e17 | ~4.1M USDT | WETH | `-198473` | ~$2,404 |
+| 42161 | WETH/USDC | 0.05% | `0xC6962004f452bE9203591991D15f6b388e09E8D0` | ~4.12e18 | ~15.3M USDC | WETH | `-198482` | ~$2,401 |
+| 42161 | WETH/USD₮0 | 0.05% | `0x641C00A822e8b671738d32a431a4Fb6074E5c79d` | ~2.74e17 | ~1.64M USDT0 | WETH | `-198472` | ~$2,404 |
+
+Mainnet WETH (`0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2`) and Arbitrum WETH
+(`0x82aF49447D8a07e3bd95BD0d56f35241523fBab1`) are the anchors, the same addresses the CowSwap
+and Curve providers use. Every stablecoin pool here is deep enough to price directly, so none
+uses `pricedAs`. Other tiers seen (not wired): mainnet USDC 0.01% `0xE0554a47…` / 0.3%
+`0x8ad599c3…`, USDT 0.01% `0xc7bBeC68…` / 0.3% `0x4e68Ccd3…`; Arbitrum USDC 0.01% `0x6f38e884…`
+/ 0.3% `0xc473e2aE…`, USDT0 0.01% `0x42161084…` / 0.3% `0xc82819F7…`. All agreed within ~0.3%.
+
 ## Limitations
 
 This provider only prices the exact (chainId, input token) pairs listed in
@@ -192,4 +256,4 @@ there pair against obvious test/meme tokens and are deliberately not wired in.
 ## Verification date
 
 2026-08-03, against Citrea mainnet and testnet at their then-current chain tip.
-Optimism: 2026-08-16. BNB Smart Chain: 2026-09-01. Robinhood Chain: 2026-10-14.
+Optimism: 2026-08-16. BNB Smart Chain: 2026-09-01. Robinhood Chain: 2026-10-14. Base, Ethereum mainnet and Arbitrum: 2026-10-23.

@@ -1,10 +1,17 @@
 import { BadRequestException } from "@nestjs/common";
 
+import { FATLoggerService } from "../../logger/fat.logger.provider";
 import { add, applyBPS, BPS, Gas, Wei } from "./unit.types";
 
 interface NativeQuote {
     num: bigint;
     den: bigint;
+}
+
+// Where an unrelayable-asset rejection is reported. The operator alert is keyed per chain.
+export interface FeeAlertContext {
+    logger: FATLoggerService;
+    chainId: number;
 }
 
 // Cap the fee at the asset's nominal `maxRelayFee`, enforcing that the asset is
@@ -17,12 +24,13 @@ interface NativeQuote {
 // reject it rather than cap below cost. Because every caller passes
 // `feeAmount = relayCost + markup`, the returned value is always >= relayCost once
 // these guards pass.
-function capFee(feeAmount: Wei, maxRelayFee: Wei, relayCost: Wei): Wei {
+function capFee(feeAmount: Wei, maxRelayFee: Wei, relayCost: Wei, alert: FeeAlertContext): Wei {
     if (maxRelayFee === 0n) return feeAmount; // uncapped — never floor to 0
     if (maxRelayFee < relayCost) {
-        throw new BadRequestException(
-            `Asset not relayable: maxRelayFee (${maxRelayFee}) is below the relay cost (${relayCost}).`
-        );
+        const error = `Asset not relayable: maxRelayFee (${maxRelayFee}) is below the relay cost (${relayCost}).`;
+        // Operator-config fault (CLAUDE.md §4b): page once per chain.
+        alert.logger.error(error, { alert: true, dedupKey: `quote.notRelayable.${alert.chainId}` });
+        throw new BadRequestException(error);
     }
     return maxRelayFee < feeAmount ? maxRelayFee : feeAmount;
 }
@@ -43,11 +51,12 @@ export function calculateBpsFee(
     nativeQuote: NativeQuote,
     relayPrice: Wei,
     maxRelayFee: Wei,
-    tokenDecimals: number
+    tokenDecimals: number,
+    alert: FeeAlertContext
 ): Wei {
     const relayCost = nativeToToken(relayPrice, nativeQuote, tokenDecimals);
     const bpsFee = applyBPS(baseBps, desiredInput);
-    const feeDesiredInput = capFee(add(relayCost, bpsFee), maxRelayFee, relayCost);
+    const feeDesiredInput = capFee(add(relayCost, bpsFee), maxRelayFee, relayCost, alert);
     return feeDesiredInput;
 }
 
@@ -57,18 +66,19 @@ export function calculateExactBpsFee(
     nativeQuote: NativeQuote,
     relayPrice: Wei,
     maxRelayFee: Wei,
-    tokenDecimals: number
+    tokenDecimals: number,
+    alert: FeeAlertContext
 ): { feeAmount: Wei; requiredInput: Wei } {
     const relayCost = nativeToToken(relayPrice, nativeQuote, tokenDecimals);
     const bpsFee = applyBPS(baseBps, desiredOutput);
-    const feeAmount = capFee(add(relayCost, bpsFee), maxRelayFee, relayCost);
+    const feeAmount = capFee(add(relayCost, bpsFee), maxRelayFee, relayCost, alert);
     const requiredInput = add(desiredOutput, feeAmount);
     return { feeAmount, requiredInput };
 }
 
-export function calculateFlatFee(relayCost: Wei, flatFeeAmount: bigint, maxRelayFee: Wei): Wei {
+export function calculateFlatFee(relayCost: Wei, flatFeeAmount: bigint, maxRelayFee: Wei, alert: FeeAlertContext): Wei {
     const calculatedFeeAmount = Wei(relayCost + flatFeeAmount);
-    return capFee(calculatedFeeAmount, maxRelayFee, relayCost);
+    return capFee(calculatedFeeAmount, maxRelayFee, relayCost, alert);
 }
 
 export function calculateExactFlatFee(desiredOutput: Wei, feeAmount: Wei): Wei {

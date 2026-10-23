@@ -1,0 +1,70 @@
+{
+    "_comment": "Shared contract fixture for the relayer on-demand report wire format (Telegram /native_asset_balances, /current_profit_margins). Checked by packages/relayer/relayer (report-publisher.spec.ts: publishReport must produce each valid event exactly) and packages/relayer/alert-dispatcher (pubsub.schemas.spec.ts: zReportEvent must accept every valid event and reject every invalid one). Change the wire format => change this file => both sides' specs show the drift.",
+    "valid": [
+        {
+            "command": "native_asset_balances",
+            "status": "ok",
+            "text": "EVM chain 1: 1.2345 ETH\n\nStellar chain 0: 100.0000000 XLM",
+            "requestId": "req-abc123",
+            "timestamp": "2026-10-22T12:00:00.000Z"
+        },
+        {
+            "command": "current_profit_margins",
+            "status": "error",
+            "text": "EVM chain 1: 5 relays, cost $1.23, earned $2.34, NET $1.11\n\nStellar chain 0: current_profit_margins is not yet supported on Stellar",
+            "requestId": "req-def456",
+            "timestamp": "2026-10-22T12:30:15.123Z"
+        }
+    ],
+    "invalid": [
+        {
+            "description": "unknown command",
+            "value": {
+                "command": "rm_rf",
+                "status": "ok",
+                "text": "t",
+                "requestId": "r",
+                "timestamp": "2026-10-22T12:00:00.000Z"
+            }
+        },
+        {
+            "description": "unknown status",
+            "value": {
+                "command": "native_asset_balances",
+                "status": "pending",
+                "text": "t",
+                "requestId": "r",
+                "timestamp": "2026-10-22T12:00:00.000Z"
+            }
+        },
+        {
+            "description": "missing requestId",
+            "value": {
+                "command": "native_asset_balances",
+                "status": "ok",
+                "text": "t",
+                "timestamp": "2026-10-22T12:00:00.000Z"
+            }
+        },
+        {
+            "description": "non-ISO timestamp",
+            "value": {
+                "command": "native_asset_balances",
+                "status": "ok",
+                "text": "t",
+                "requestId": "r",
+                "timestamp": "yesterday"
+            }
+        },
+        {
+            "description": "non-string text",
+            "value": {
+                "command": "native_asset_balances",
+                "status": "ok",
+                "text": 42,
+                "requestId": "r",
+                "timestamp": "2026-10-22T12:00:00.000Z"
+            }
+        }
+    ]
+}

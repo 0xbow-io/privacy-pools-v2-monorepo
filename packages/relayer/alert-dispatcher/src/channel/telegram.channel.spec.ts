@@ -1,7 +1,7 @@
 import { mock } from "jest-mock-extended";
 import type { AlertDispatcherConfigService } from "../config/alert-dispatcher-config.service";
-import type { AlertEvent } from "../pubsub/pubsub.schemas";
-import { TelegramChannel, escapeHtml, formatAlert } from "./telegram.channel";
+import type { AlertEvent, ReportEvent } from "../pubsub/pubsub.schemas";
+import { TelegramChannel, escapeHtml, formatAlert, formatReport } from "./telegram.channel";
 
 const TOKEN = "123456:SECRET-BOT-TOKEN";
 const event = (overrides: Partial<AlertEvent> = {}): AlertEvent => ({
@@ -10,6 +10,14 @@ const event = (overrides: Partial<AlertEvent> = {}): AlertEvent => ({
     context: "EVMChainService",
     dedupKey: "EVMChainService.signerOutOfGas.8453",
     timestamp: "2026-10-16T12:00:00.000Z",
+    ...overrides,
+});
+const reportEvent = (overrides: Partial<ReportEvent> = {}): ReportEvent => ({
+    command: "native_asset_balances",
+    status: "ok",
+    text: "EVM chain 1: 1.2345 ETH",
+    requestId: "req-abc123",
+    timestamp: "2026-10-22T12:00:00.000Z",
     ...overrides,
 });
 
@@ -72,6 +80,26 @@ describe("TelegramChannel", () => {
         expect((error as Error).message).toBe("Telegram request failed: fetch failed");
         expect((error as Error).message).not.toContain(TOKEN);
     });
+
+    it("sendReport POSTs the same way send() does, with the report's command and text.", async () => {
+        fetchSpy.mockResolvedValue(new Response("{}", { status: 200 }));
+
+        await channel.sendReport(reportEvent());
+
+        const [url, init] = fetchSpy.mock.calls[0];
+        expect(url).toBe(`https://api.telegram.org/bot${TOKEN}/sendMessage`);
+        const body = JSON.parse(init.body as string);
+        expect(body.chat_id).toBe("-100123");
+        expect(body.parse_mode).toBe("HTML");
+        expect(body.text).toContain("REPORT");
+        expect(body.text).toContain("native_asset_balances");
+        expect(body.text).toContain("1.2345 ETH");
+    });
+
+    it("sendReport throws on a non-2xx response the same way send() does.", async () => {
+        fetchSpy.mockResolvedValue(new Response(JSON.stringify({ description: "Bad Request" }), { status: 400 }));
+        await expect(channel.sendReport(reportEvent())).rejects.toThrow("HTTP 400");
+    });
 });
 
 describe("formatAlert", () => {
@@ -88,6 +116,39 @@ describe("formatAlert", () => {
         expect(text.length).toBeLessThanOrEqual(4096);
         expect(text).toContain("…");
         expect(text).toContain("<i>"); // the footer survives
+    });
+});
+
+describe("formatReport", () => {
+    it("escapes HTML in command and text.", () => {
+        const text = formatReport(reportEvent({ text: "a < b && c > d" }));
+        expect(text).toContain("a &lt; b &amp;&amp; c &gt; d");
+    });
+
+    it("uses a different prefix for an error-status report.", () => {
+        const text = formatReport(reportEvent({ status: "error" }));
+        expect(text).toContain("partial failure");
+    });
+
+    it("stays within Telegram's 4096-character limit by shortening the text.", () => {
+        const text = formatReport(reportEvent({ text: "x".repeat(10_000) }));
+        expect(text.length).toBeLessThanOrEqual(4096);
+        expect(text).toContain("…");
+    });
+
+    // Regression: the text used to be escaped before truncation, so a cut could land inside
+    // `&amp;` and leave `&am…`, which Telegram rejects (the report then retried forever).
+    it.each([
+        ["ampersands", "&".repeat(3_700)],
+        ["angle brackets", "<>".repeat(2_000)],
+        ["mixed", "a&<b>&".repeat(800)],
+    ])("truncates long %s input only at complete HTML entities", (_label, raw) => {
+        const text = formatReport(reportEvent({ text: raw }));
+        expect(text.length).toBeLessThanOrEqual(4096);
+        // Every "&" must start a complete entity; a cut mid-entity leaves a bare "&am" or "&l".
+        const entities = text.match(/&[^;\s]*;?/g) ?? [];
+        for (const e of entities) expect(e).toMatch(/^&(amp|lt|gt);$/);
+        expect(text).toContain("…");
     });
 });
 

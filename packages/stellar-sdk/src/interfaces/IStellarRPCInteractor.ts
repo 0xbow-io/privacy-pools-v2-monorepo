@@ -45,6 +45,15 @@ export interface IStellarRPCInteractor extends ITxReceiptWaiter<StellarLog> {
     getAccount(publicKey: string): Promise<StellarAccountInfo>;
 
     /**
+     * Current native (XLM) balance of an account, in stroops (1 XLM = 10,000,000 stroops) —
+     * read directly off the account's ledger entry, not a trustline (native balance is intrinsic
+     * to `AccountEntry` itself, unlike an issued asset).
+     *
+     * @throws {StellarRPCInteractorBaseError}
+     */
+    getNativeBalance(publicKey: string): Promise<bigint>;
+
+    /**
      * Builds and simulates a read-only contract call — never submitted, no signature needed.
      * Soroban has no separate "storage read" path distinct from a simulated call; even a pure
      * read needs a valid (any) source account to build a well-formed transaction envelope.

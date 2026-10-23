@@ -11,6 +11,7 @@ import { RelayModule } from "./relay/relay.module";
 import { DetailsModule } from "./details/details.module";
 import { RequestLogInterceptor } from "./request.log.interceptor";
 import { ConfigModule } from "./config/config.module";
+import { TelegramModule } from "./telegram/telegram.module";
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { ConfigModule } from "./config/config.module";
         DetailsModule.forRoot(),
         QuoteModule.forRoot(),
         RelayModule.forRoot(),
+        TelegramModule,
     ],
     controllers: [AppController, ReconcileController],
     providers: [

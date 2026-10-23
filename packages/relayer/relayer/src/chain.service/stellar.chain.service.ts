@@ -136,6 +136,11 @@ export class StellarChainService {
         });
     }
 
+    /** The relayer signer's current native (XLM) balance, in stroops — read-only, no signer key used. */
+    async nativeBalance(): Promise<bigint> {
+        return this.rpcInteractor().getNativeBalance(this.config.signerAddress());
+    }
+
     /**
      * Runs `submit` (which builds, signs and submits one transaction from `keypair`) under the
      * signer lock, and holds the lock until that transaction is on-chain so the next one is built

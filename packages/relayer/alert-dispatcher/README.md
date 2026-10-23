@@ -52,6 +52,11 @@ only secret is the Telegram bot token (Secret Manager), which can post to one ch
 Auth is Cloud Run IAM (`--no-allow-unauthenticated`; the push subscription's service account holds
 `roles/run.invoker`). The service trusts the relayer's redaction and does not re-scrub alert text.
 
+A sibling route, `POST /pubsub/reports` (topic `relayer-reports`), delivers on-demand report
+results — the reverse direction, triggered by a Telegram command on the relayer rather than a
+relayer log line. Same envelope handling, no cooldown, no new ingress on this service. Design:
+`docs/tech-design/relayer/relayer-reports.md`.
+
 ### Cooldown
 
 One Firestore document per `dedupKey` (id = SHA-256 of the key): `{ dedupKey, lastSentAt, lastSeverity,

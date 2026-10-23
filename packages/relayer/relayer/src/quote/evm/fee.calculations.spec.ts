@@ -1,30 +1,47 @@
 import { BadRequestException } from "@nestjs/common";
 
-import { calculateBpsFee, calculateFlatFee, nativeToToken } from "./fee.calculations";
+import { calculateBpsFee, calculateFlatFee, nativeToToken, type FeeAlertContext } from "./fee.calculations";
 import { BPS, Wei } from "./unit.types";
+import { createMockLogger } from "../../test/mocks";
+import type { FATLoggerService } from "../../logger/fat.logger.provider";
 
 // A native quote that makes nativeToToken an identity at 18 decimals:
 // relayCost = relayPrice * den * 10^18 / num, with num = 10^18, den = 1 → relayCost = relayPrice.
 const IDENTITY_QUOTE = { num: 10n ** 18n, den: 1n };
 const DECIMALS = 18;
+const CHAIN_ID = 8453;
+const newAlert = () => {
+    const logger = createMockLogger();
+    const alert: FeeAlertContext = { logger: logger as unknown as FATLoggerService, chainId: CHAIN_ID };
+    return { logger, alert };
+};
 
 describe("capFee — zero sentinel + cost floor (H1 / R-H3)", () => {
     describe("calculateFlatFee", () => {
         it("treat maxRelayFee 0 as uncapped, never flooring the fee to 0", () => {
             // relayCost 10 + flatFee 5 = 15; maxRelayFee 0 = "no maximum" → 15, not 0.
-            expect(calculateFlatFee(Wei(10n), 5n, Wei(0n))).toBe(15n);
+            expect(calculateFlatFee(Wei(10n), 5n, Wei(0n), newAlert().alert)).toBe(15n);
         });
 
         it("cap the fee at a nonzero maxRelayFee above cost", () => {
-            expect(calculateFlatFee(Wei(10n), 5n, Wei(12n))).toBe(12n);
+            expect(calculateFlatFee(Wei(10n), 5n, Wei(12n), newAlert().alert)).toBe(12n);
         });
 
         it("return the uncapped fee when maxRelayFee exceeds it", () => {
-            expect(calculateFlatFee(Wei(10n), 5n, Wei(100n))).toBe(15n);
+            expect(calculateFlatFee(Wei(10n), 5n, Wei(100n), newAlert().alert)).toBe(15n);
         });
 
         it("throw when a nonzero maxRelayFee is below relayCost", () => {
-            expect(() => calculateFlatFee(Wei(10n), 5n, Wei(5n))).toThrow(BadRequestException);
+            expect(() => calculateFlatFee(Wei(10n), 5n, Wei(5n), newAlert().alert)).toThrow(BadRequestException);
+        });
+
+        it("pages the operator (alert, per-chain dedupKey) when the asset is not relayable", () => {
+            const { logger, alert } = newAlert();
+            expect(() => calculateFlatFee(Wei(10n), 5n, Wei(5n), alert)).toThrow(BadRequestException);
+            expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("Asset not relayable"), {
+                alert: true,
+                dedupKey: `quote.notRelayable.${CHAIN_ID}`,
+            });
         });
     });
 
@@ -32,13 +49,13 @@ describe("capFee — zero sentinel + cost floor (H1 / R-H3)", () => {
         it("treat maxRelayFee 0 as uncapped on the bps path", () => {
             // relayCost 10 + bps(1000 * 1000 / 10000 = 100) = 110; maxRelayFee 0 → 110, not 0.
             expect(
-                calculateBpsFee(Wei(1000n), BPS(1000n), IDENTITY_QUOTE, Wei(10n), Wei(0n), DECIMALS),
+                calculateBpsFee(Wei(1000n), BPS(1000n), IDENTITY_QUOTE, Wei(10n), Wei(0n), DECIMALS, newAlert().alert),
             ).toBe(110n);
         });
 
         it("throw when a nonzero maxRelayFee is below relayCost", () => {
             expect(() =>
-                calculateBpsFee(Wei(1000n), BPS(1000n), IDENTITY_QUOTE, Wei(10n), Wei(5n), DECIMALS),
+                calculateBpsFee(Wei(1000n), BPS(1000n), IDENTITY_QUOTE, Wei(10n), Wei(5n), DECIMALS, newAlert().alert),
             ).toThrow(BadRequestException);
         });
     });
