@@ -15,7 +15,7 @@ privacy-pools-v2/
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) >= 18
+- [Node.js](https://nodejs.org/) 22.23.4 or a newer 22.x patch (`nvm use`)
 - [pnpm](https://pnpm.io/) >= 9
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
 - [Circom](https://docs.circom.io/getting-started/installation/)
