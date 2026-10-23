@@ -31,6 +31,8 @@ import {
     BatchWithdrawalRelayerQuoteSchema,
     BatchWithdrawalRelayParamsSchema,
     InvalidRelayerConfig,
+    HTTPResponseError,
+    RelayerQuoteUnavailable,
     makeRelayerAddressSchemas,
     makeRelayerChainDetailsSchemas,
     RelayerRejected,
@@ -161,6 +163,11 @@ export class RelayerInteractor<TAddress = Address> implements IRelayerInteractor
                 throw error;
             }
             this.logger?.error("Failed to request transfer quote", { error });
+            // Only quote-stage server failures guarantee no transaction was submitted.
+            // Keep status and cause for callers without displaying the raw HTTP body.
+            if (error instanceof HTTPResponseError && error.status >= 500 && error.status <= 599) {
+                throw new RelayerQuoteUnavailable(error.status, error);
+            }
             const message = error instanceof Error ? error.message : String(error);
             throw new RelayerRequestFailed(message);
         }
@@ -207,6 +214,11 @@ export class RelayerInteractor<TAddress = Address> implements IRelayerInteractor
                 throw error;
             }
             this.logger?.error("Failed to request withdrawal quote", { error });
+            // Only quote-stage server failures guarantee no transaction was submitted.
+            // Keep status and cause for callers without displaying the raw HTTP body.
+            if (error instanceof HTTPResponseError && error.status >= 500 && error.status <= 599) {
+                throw new RelayerQuoteUnavailable(error.status, error);
+            }
             const message = error instanceof Error ? error.message : String(error);
             throw new RelayerRequestFailed(message);
         }
@@ -253,6 +265,11 @@ export class RelayerInteractor<TAddress = Address> implements IRelayerInteractor
                 throw error;
             }
             this.logger?.error("Failed to request batch withdrawal quote", { error });
+            // Only quote-stage server failures guarantee no transaction was submitted.
+            // Keep status and cause for callers without displaying the raw HTTP body.
+            if (error instanceof HTTPResponseError && error.status >= 500 && error.status <= 599) {
+                throw new RelayerQuoteUnavailable(error.status, error);
+            }
             const message = error instanceof Error ? error.message : String(error);
             throw new RelayerRequestFailed(message);
         }
@@ -515,6 +532,11 @@ export class RelayerInteractor<TAddress = Address> implements IRelayerInteractor
                 throw error;
             }
             this.logger?.error("Failed to request swap quote", { error });
+            // Only quote-stage server failures guarantee no transaction was submitted.
+            // Keep status and cause for callers without displaying the raw HTTP body.
+            if (error instanceof HTTPResponseError && error.status >= 500 && error.status <= 599) {
+                throw new RelayerQuoteUnavailable(error.status, error);
+            }
             const message = error instanceof Error ? error.message : String(error);
             throw new RelayerRequestFailed(message);
         }

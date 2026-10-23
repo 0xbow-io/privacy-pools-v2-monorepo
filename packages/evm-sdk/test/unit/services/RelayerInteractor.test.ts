@@ -27,6 +27,8 @@ import type {
 import {
     AddressSchema,
     InvalidRelayerConfig,
+    HTTPResponseError,
+    RelayerQuoteUnavailable,
     RelayerInteractor,
     RelayerRejected,
     RelayerRequestFailed,
@@ -170,6 +172,123 @@ describe("RelayerInteractor", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockHttpClient = createMockHttpClient();
+    });
+
+    describe("relayer quote outages", () => {
+        const asset = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Hex;
+        const recipient = "0x1234123412341234123412341234123412341234" as Hex;
+        const cases = [
+            [
+                "transfer",
+                (i: RelayerInteractor) =>
+                    i.getTransferQuote(createMockRelayerInfo(), { asset, commit: false }),
+            ],
+            [
+                "withdrawal",
+                (i: RelayerInteractor) =>
+                    i.getWithdrawalQuote(createMockRelayerInfo(), {
+                        asset,
+                        recipient,
+                        amount: "1000000",
+                        extraGas: false,
+                        commit: false,
+                    }),
+            ],
+            [
+                "batch",
+                (i: RelayerInteractor) =>
+                    i.getBatchWithdrawalQuote(createMockRelayerInfo(), {
+                        asset,
+                        recipient,
+                        amounts: ["1000000"],
+                        extraGas: false,
+                        commit: false,
+                    }),
+            ],
+            [
+                "swap",
+                (i: RelayerInteractor) =>
+                    i.getSwapQuote(createMockRelayerInfo(), {
+                        asset,
+                        recipient,
+                        amount: "1000000",
+                        outputToken: recipient,
+                        minOutputAmount: "0",
+                        dustRecipient: recipient,
+                        commit: false,
+                    }),
+            ],
+        ] as const;
+
+        for (const [flow, request] of cases) {
+            it.each([500, 502, 503, 504])(
+                `${flow}: describes HTTP %i before submission without raw server text`,
+                async (status) => {
+                    const original = new HTTPResponseError(
+                        status,
+                        "Service Unavailable",
+                        '{"message":"Quote deadline (8000ms) exceeded — upstream RPC unresponsive"}',
+                    );
+                    vi.mocked(mockHttpClient.post).mockRejectedValueOnce(original);
+                    const interactor = new RelayerInteractor(
+                        createDefaultConfig(mockHttpClient),
+                    );
+                    const error = await request(interactor).catch((e: unknown) => e);
+                    expect(error).toBeInstanceOf(RelayerQuoteUnavailable);
+                    expect(error).toBeInstanceOf(RelayerRequestFailed);
+                    expect(error).toMatchObject({
+                        message:
+                            "Your funds are safe. The relayer is having issues. Try again later.",
+                        status,
+                        cause: original,
+                    });
+                    expect(mockHttpClient.post).toHaveBeenCalledTimes(1);
+                },
+            );
+
+            it.each([400, 401, 404, 429])(
+                `${flow}: leaves HTTP %i validation or client failures intact`,
+                async (status) => {
+                    const original = new HTTPResponseError(
+                        status,
+                        "Rejected",
+                        "specific reason",
+                    );
+                    vi.mocked(mockHttpClient.post).mockRejectedValueOnce(original);
+                    const error = await request(
+                        new RelayerInteractor(createDefaultConfig(mockHttpClient)),
+                    ).catch((e: unknown) => e);
+                    expect(error).toBeInstanceOf(RelayerRequestFailed);
+                    expect(error).not.toBeInstanceOf(RelayerQuoteUnavailable);
+                    expect((error as Error).message).toBe(original.message);
+                },
+            );
+        }
+    });
+
+    it("does not call a relay-stage 503 safe or classify it as a quote outage", async () => {
+        const original = new HTTPResponseError(
+            503,
+            "Service Unavailable",
+            "unknown broadcast outcome",
+        );
+        vi.mocked(mockHttpClient.post).mockRejectedValueOnce(original);
+        const interactor = new RelayerInteractor(
+            createDefaultConfig(mockHttpClient),
+        );
+        const error = await interactor
+            .relayTransfer(createMockRelayerInfo(), {
+                proof: createMockProof(),
+                noteData: [{ hint: "0x01" as Hex, data: "0xabcdef" as Hex }],
+                signedFeeCommitment: createMockFeeCommitment(),
+                inputNullifierNumber: 1,
+                outputCommitmentNumber: 2,
+            })
+            .catch((e: unknown) => e);
+        expect(error).toBeInstanceOf(RelayerRejected);
+        expect(error).not.toBeInstanceOf(RelayerQuoteUnavailable);
+        expect((error as Error).message).toBe(original.message);
+        expect((error as Error).message).not.toContain("funds are safe");
     });
 
     describe("constructor", () => {
